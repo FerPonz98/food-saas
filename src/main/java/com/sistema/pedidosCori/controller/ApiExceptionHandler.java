@@ -33,6 +33,18 @@ public class ApiExceptionHandler {
                 "codigo", "NO_ENCONTRADO"));
     }
 
+    @ExceptionHandler(com.sistema.pedidosCori.service.LlamadoService.LimiteExcedido.class)
+    public ResponseEntity<Map<String, String>> demasiadas(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+            .body(Map.of("mensaje", ex.getMessage(), "codigo", "DEMASIADAS_SOLICITUDES"));
+    }
+
+    @ExceptionHandler(com.sistema.pedidosCori.service.ModuloService.ModuloNoIncluido.class)
+    public ResponseEntity<Map<String, String>> moduloNoIncluido(com.sistema.pedidosCori.service.ModuloService.ModuloNoIncluido ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(Map.of("mensaje", ex.getMessage(), "codigo", "MODULO_NO_INCLUIDO", "modulo", ex.getModulo().name()));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> solicitudInvalida(IllegalArgumentException ex) {
         return ResponseEntity.badRequest()

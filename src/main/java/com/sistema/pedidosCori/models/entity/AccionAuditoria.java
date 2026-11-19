@@ -5,6 +5,10 @@ public enum AccionAuditoria {
     PEDIDO_ITEMS_AGREGADOS("Productos agregados al pedido"),
     PEDIDO_ESTADO("Cambio de estado del pedido"),
     PEDIDO_COBRADO("Pedido cobrado"),
+    PAGO_PARCIAL_REGISTRADO("Pago parcial registrado"),
+    PEDIDO_QR_APROBADO("Pedido desde la carta aprobado"),
+    PEDIDO_QR_RECHAZADO("Pedido desde la carta rechazado"),
+    LLAMADO_CONFIRMADO("Llamado de mesa confirmado"),
     PLATO_CREADO("Producto creado"),
     PLATO_EDITADO("Producto editado"),
     PLATO_ELIMINADO("Producto eliminado"),
@@ -21,6 +25,7 @@ public enum AccionAuditoria {
     MENU_PUBLICADO("Menú del día publicado"),
     CONFIGURACION_ACTUALIZADA("Configuración actualizada"),
     LOGO_ACTUALIZADO("Logo actualizado"),
+    WIFI_ACTUALIZADO("Wi-Fi para clientes actualizado"),
     CONFIGURACION_RESTABLECIDA("Configuración restablecida"),
     USUARIO_CREADO("Usuario creado"),
     USUARIO_EDITADO("Usuario editado"),
@@ -32,7 +37,8 @@ public enum AccionAuditoria {
     TERMINOS_ACEPTADOS("Términos y condiciones aceptados"),
     ACCESO_RECUPERADO("Acceso recuperado desde el servidor"),
     LOGIN("Inicio de sesión"),
-    LOGIN_FALLIDO("Intento de acceso fallido");
+    LOGIN_FALLIDO("Intento de acceso fallido"),
+    SUSCRIPCION_ACTUALIZADA("Suscripción actualizada por soporte");
 
     private final String etiqueta;
 

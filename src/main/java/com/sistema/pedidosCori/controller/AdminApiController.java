@@ -1,5 +1,11 @@
 package com.sistema.pedidosCori.controller;
 
+import com.sistema.pedidosCori.service.PlataformaService;
+
+import com.sistema.pedidosCori.models.entity.Modulo;
+
+import com.sistema.pedidosCori.config.RequiereModulo;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +45,7 @@ public class AdminApiController {
     private final AuditoriaService auditoriaService;
     private final ResumenService resumenService;
     private final ReporteService reporteService;
+    private final PlataformaService plataformaService;
 
     public record RegistroVista(Long id, String fecha, String usuario, String accion, String accionEtiqueta,
             String entidad, String entidadId, String detalle) { }
@@ -69,7 +76,11 @@ public class AdminApiController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/plan")
+    public PlataformaService.MiPlan plan() { return plataformaService.miPlan(); }
+
     @GetMapping("/auditoria")
+    @RequiereModulo(Modulo.AUDITORIA)
     public PaginaAuditoria auditoria(
             @RequestParam(required = false) String usuario,
             @RequestParam(required = false) String accion,
@@ -85,9 +96,11 @@ public class AdminApiController {
     }
 
     @GetMapping("/auditoria/acciones")
+    @RequiereModulo(Modulo.AUDITORIA)
     public List<Map<String, String>> acciones() { return auditoriaService.acciones(); }
 
     @GetMapping("/auditoria/usuarios")
+    @RequiereModulo(Modulo.AUDITORIA)
     public List<String> usuariosAuditoria() { return auditoriaService.usuarios(); }
 
     @GetMapping("/resumen-hoy")
@@ -98,10 +111,11 @@ public class AdminApiController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
             @RequestParam(defaultValue = "auto") String agrupar) {
-        return reporteService.generar(desde, hasta, agrupar);
+        return reporteService.generarSegunPlan(desde, hasta, agrupar);
     }
 
     @GetMapping("/reportes/csv")
+    @RequiereModulo(Modulo.REPORTES_AVANZADOS)
     public ResponseEntity<byte[]> reporteCsv(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,

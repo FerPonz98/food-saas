@@ -32,10 +32,10 @@
             <label for="cantidadPuntosAtencion">Cantidad</label>
             <div class="local-stepper">
               <button type="button" class="local-stepper-btn button-secondary" data-paso="-1" aria-label="Quitar una">−</button>
-              <input class="field local-stepper-num" id="cantidadPuntosAtencion" name="cantidadPuntosAtencion" type="number" inputmode="numeric" min="0" max="200" step="1" required aria-describedby="ayuda-cantidad error-cantidadPuntosAtencion" th:value="${negocio.cantidadPuntosAtencion}">
+              <input class="field local-stepper-num" id="cantidadPuntosAtencion" name="cantidadPuntosAtencion" type="number" inputmode="numeric" min="0" max="500" step="1" required aria-describedby="ayuda-cantidad error-cantidadPuntosAtencion" th:value="${negocio.cantidadPuntosAtencion}">
               <button type="button" class="local-stepper-btn button-secondary" data-paso="1" aria-label="Agregar una">+</button>
             </div>
-            <p class="admin-help" id="ayuda-cantidad">Pon 0 si solo vendes para llevar. Máximo 200.</p>
+            <p class="admin-help" id="ayuda-cantidad">Pon 0 si solo vendes para llevar. Máximo 500.</p>
             <p class="admin-error" id="error-cantidadPuntosAtencion" aria-live="polite"></p>
           </div>
           <div class="admin-ejemplo" aria-live="polite">
@@ -49,25 +49,26 @@
       <section class="admin-card" aria-labelledby="titulo-nombres">
         <div class="admin-card-head">
           <h2 id="titulo-nombres">¿Cómo llamas a tus mesas?</h2>
+            <p class="admin-help plan-bloqueado" th:unless="${modulos.contains('APARIENCIA_AVANZADA')}">🔒 Los nombres de mesas y del personal se personalizan desde el plan Pro. <a th:href="@{/admin/plan(modulo='APARIENCIA_AVANZADA')}">Ver mi plan</a></p>
           <p>Ej.: Mesa, Mostrador, Cabina. Escribe el nombre para una y para varias.</p>
         </div>
         <div class="admin-card-body">
           <div class="admin-form-grid">
             <div class="admin-field">
               <label for="puntoAtencionSingular">Para una</label>
-              <input class="field" id="puntoAtencionSingular" name="puntoAtencionSingular" maxlength="40" required placeholder="Mesa" aria-describedby="error-puntoAtencionSingular" th:value="${negocio.puntoAtencionSingular}">
+              <input class="field" id="puntoAtencionSingular" th:disabled="${!modulos.contains('APARIENCIA_AVANZADA')}" name="puntoAtencionSingular" maxlength="40" required placeholder="Mesa" aria-describedby="error-puntoAtencionSingular" th:value="${negocio.puntoAtencionSingular}">
               <p class="admin-help">Ej.: «Mesa 3».</p>
               <p class="admin-error" id="error-puntoAtencionSingular" aria-live="polite"></p>
             </div>
             <div class="admin-field">
               <label for="puntoAtencionPlural">Para varias</label>
-              <input class="field" id="puntoAtencionPlural" name="puntoAtencionPlural" maxlength="40" required placeholder="Mesas" aria-describedby="error-puntoAtencionPlural" th:value="${negocio.puntoAtencionPlural}">
+              <input class="field" id="puntoAtencionPlural" th:disabled="${!modulos.contains('APARIENCIA_AVANZADA')}" name="puntoAtencionPlural" maxlength="40" required placeholder="Mesas" aria-describedby="error-puntoAtencionPlural" th:value="${negocio.puntoAtencionPlural}">
               <p class="admin-help">Ej.: «Tienes 12 mesas».</p>
               <p class="admin-error" id="error-puntoAtencionPlural" aria-live="polite"></p>
             </div>
             <div class="admin-field admin-campo-ancho">
               <label for="etiquetaParaLlevar">Pedidos que no se comen en el local</label>
-              <input class="field" id="etiquetaParaLlevar" name="etiquetaParaLlevar" maxlength="40" required placeholder="Para llevar" aria-describedby="error-etiquetaParaLlevar" th:value="${negocio.etiquetaParaLlevar}">
+              <input class="field" id="etiquetaParaLlevar" th:disabled="${!modulos.contains('APARIENCIA_AVANZADA')}" name="etiquetaParaLlevar" maxlength="40" required placeholder="Para llevar" aria-describedby="error-etiquetaParaLlevar" th:value="${negocio.etiquetaParaLlevar}">
               <p class="admin-help">Ej.: Para llevar, Delivery, Retiro.</p>
               <p class="admin-error" id="error-etiquetaParaLlevar" aria-live="polite"></p>
             </div>
@@ -88,13 +89,13 @@
           <div class="admin-form-grid">
             <div class="admin-field">
               <label for="etiquetaRolMesero">Quien atiende y cobra</label>
-              <input class="field" id="etiquetaRolMesero" name="etiquetaRolMesero" maxlength="40" required placeholder="Mesero" aria-describedby="error-etiquetaRolMesero" th:value="${negocio.etiquetaRolMesero}">
+              <input class="field" id="etiquetaRolMesero" th:disabled="${!modulos.contains('APARIENCIA_AVANZADA')}" name="etiquetaRolMesero" maxlength="40" required placeholder="Mesero" aria-describedby="error-etiquetaRolMesero" th:value="${negocio.etiquetaRolMesero}">
               <p class="admin-help">Ej.: Mesero, Cajero, Vendedor.</p>
               <p class="admin-error" id="error-etiquetaRolMesero" aria-live="polite"></p>
             </div>
             <div class="admin-field">
               <label for="etiquetaRolCocina">Quien prepara</label>
-              <input class="field" id="etiquetaRolCocina" name="etiquetaRolCocina" maxlength="40" required placeholder="Cocina" aria-describedby="error-etiquetaRolCocina" th:value="${negocio.etiquetaRolCocina}">
+              <input class="field" id="etiquetaRolCocina" th:disabled="${!modulos.contains('APARIENCIA_AVANZADA')}" name="etiquetaRolCocina" maxlength="40" required placeholder="Cocina" aria-describedby="error-etiquetaRolCocina" th:value="${negocio.etiquetaRolCocina}">
               <p class="admin-help">Ej.: Cocina, Barra, Taller.</p>
               <p class="admin-error" id="error-etiquetaRolCocina" aria-live="polite"></p>
             </div>

@@ -1,10 +1,10 @@
 package com.sistema.pedidosCori.service;
 
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
-import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +13,7 @@ import com.sistema.pedidosCori.models.dto.ConfiguracionNegocioRequest;
 import com.sistema.pedidosCori.models.dto.ConfiguracionNegocioVista;
 import com.sistema.pedidosCori.models.entity.ConfiguracionNegocio;
 import com.sistema.pedidosCori.models.entity.AccionAuditoria;
+import com.sistema.pedidosCori.models.entity.Modulo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,28 +25,65 @@ public class ConfiguracionNegocioService {
     private final LogoValidator logoValidator;
     private final AuditoriaService auditoria;
 
-    @Bean
-    ApplicationRunner iniciarConfiguracion(ConfiguracionNegocioService service) {
-        return args -> service.inicializar();
-    }
+    public static final int MAXIMO_PUNTOS_ATENCION = 500;
+    private final ModuloService modulos;
 
     @Transactional
-    public void inicializar() {
-        if (!dao.existsById(1L)) dao.save(nuevaPorDefecto());
+    public void crearPara(long negocioId, String nombre) {
+        if (dao.existsById(negocioId)) return;
+        ConfiguracionNegocio c = nuevaPorDefecto();
+        c.setId(negocioId);
+        if (nombre != null && !nombre.isBlank()) c.setNombreNegocio(nombre.trim());
+        dao.save(c);
     }
 
     @Transactional(readOnly = true)
     public ConfiguracionNegocioVista vista() {
-        ConfiguracionNegocio c = actual();
-        Map<String, String> tema = TemaNegocio.variables(c.getColorPrimario(), c.getColorSecundario(), c.getColorAcento());
-        return new ConfiguracionNegocioVista(c.getNombreNegocio(), c.getEslogan(), c.getColorPrimario(),
-            c.getColorSecundario(), c.getColorAcento(), c.getPuntoAtencionSingular(), c.getPuntoAtencionPlural(),
-            c.getEtiquetaParaLlevar(), c.getEtiquetaRolMesero(), c.getEtiquetaRolCocina(), c.getSimboloMoneda(),
-            c.getCantidadPuntosAtencion(), "/branding/logo?v=" + c.getLogoVersion(), c.getLogoMimeType(), tema);
+        Optional<Long> negocio = NegocioActual.id();
+        if (negocio.isPresent()) return vista(negocio.get());
+        if (NegocioActual.esRaiz()) return vistaPlataforma();
+        return vistaPredeterminada();
     }
 
     @Transactional(readOnly = true)
-    public ConfiguracionNegocio logoActual() { return actual(); }
+    public ConfiguracionNegocioVista vista(long negocioId) {
+        ConfiguracionNegocio c = dao.findById(negocioId).orElseGet(this::nuevaPorDefecto);
+        return vista(c, modulos.info(negocioId).orElse(null));
+    }
+
+    public ConfiguracionNegocioVista vistaPlataforma() {
+        ConfiguracionNegocio c = nuevaPorDefecto();
+        c.setNombreNegocio("Plataforma");
+        c.setEslogan("Administración de negocios y planes");
+        return vista(c, null);
+    }
+
+    @Transactional(readOnly = true)
+    public ConfiguracionNegocioVista vistaPredeterminada() {
+        return modulos.unicoNegocio().map(this::vista).orElseGet(() -> vista(nuevaPorDefecto(), null));
+    }
+
+    private ConfiguracionNegocioVista vista(ConfiguracionNegocio c, ModuloService.InfoNegocio info) {
+        Map<String, String> tema = TemaNegocio.variables(c.getColorPrimario(), c.getColorSecundario(), c.getColorAcento());
+        String logo = info == null ? "/branding/logo?v=" + c.getLogoVersion() : "/n/" + info.slug() + "/logo?v=" + c.getLogoVersion();
+        return new ConfiguracionNegocioVista(c.getNombreNegocio(), c.getEslogan(), c.getColorPrimario(),
+            c.getColorSecundario(), c.getColorAcento(), c.getPuntoAtencionSingular(), c.getPuntoAtencionPlural(),
+            c.getEtiquetaParaLlevar(), c.getEtiquetaRolMesero(), c.getEtiquetaRolCocina(), c.getSimboloMoneda(),
+            c.getCantidadPuntosAtencion(), logo, c.getLogoMimeType(), tema,
+            info == null ? null : info.slug(), info == null ? null : info.planCodigo(), info == null ? null : info.planNombre(),
+            info == null ? java.util.List.of() : info.modulos().stream().map(Enum::name).sorted().toList());
+    }
+
+    @Transactional(readOnly = true)
+    public ConfiguracionNegocio logoDe(long negocioId) {
+        return dao.findById(negocioId).orElseGet(this::nuevaPorDefecto);
+    }
+
+    @Transactional(readOnly = true)
+    public ConfiguracionNegocio logoActual() {
+        Optional<Long> negocio = NegocioActual.id().or(modulos::unicoNegocio);
+        return negocio.map(this::logoDe).orElseGet(this::nuevaPorDefecto);
+    }
 
     @Transactional
     public ConfiguracionNegocioVista actualizar(ConfiguracionNegocioRequest r) {
@@ -62,9 +100,18 @@ public class ConfiguracionNegocioService {
         String mesero = texto(r.etiquetaRolMesero(), "etiqueta del rol mesero", 40);
         String cocina = texto(r.etiquetaRolCocina(), "etiqueta del rol cocina", 40);
         String moneda = texto(r.simboloMoneda(), "símbolo de moneda", 12);
-        if (r.cantidadPuntosAtencion() == null || r.cantidadPuntosAtencion() < 0 || r.cantidadPuntosAtencion() > 200)
-            throw new IllegalArgumentException("La cantidad de puntos de atención debe estar entre 0 y 200");
+        if (r.cantidadPuntosAtencion() == null || r.cantidadPuntosAtencion() < 0 || r.cantidadPuntosAtencion() > MAXIMO_PUNTOS_ATENCION)
+            throw new IllegalArgumentException("La cantidad de puntos de atención debe estar entre 0 y " + MAXIMO_PUNTOS_ATENCION);
         ConfiguracionNegocio c = actual();
+        if (!modulos.tiene(Modulo.APARIENCIA_AVANZADA)) {
+            boolean cambiaAvanzado = !Objects.equals(Objects.toString(c.getEslogan(), ""), eslogan)
+                || !c.getColorPrimario().equalsIgnoreCase(primario) || !c.getColorSecundario().equalsIgnoreCase(secundario)
+                || !c.getColorAcento().equalsIgnoreCase(acento)
+                || !c.getPuntoAtencionSingular().equals(singular) || !c.getPuntoAtencionPlural().equals(plural)
+                || !c.getEtiquetaParaLlevar().equals(llevar) || !c.getEtiquetaRolMesero().equals(mesero)
+                || !c.getEtiquetaRolCocina().equals(cocina);
+            if (cambiaAvanzado) throw new ModuloService.ModuloNoIncluido(Modulo.APARIENCIA_AVANZADA);
+        }
         c.setNombreNegocio(nombre); c.setEslogan(eslogan);
         c.setColorPrimario(primario); c.setColorSecundario(secundario); c.setColorAcento(acento);
         c.setPuntoAtencionSingular(singular); c.setPuntoAtencionPlural(plural);
@@ -112,9 +159,37 @@ public class ConfiguracionNegocioService {
             "Se restauraron los valores predeterminados y el logo");
         return vista();
     }
+    public record Wifi(String nombre, String clave) {
+        public boolean configurado() { return nombre != null && !nombre.isBlank(); }
+    }
+
+    @Transactional(readOnly = true)
+    public Wifi wifi() {
+        ConfiguracionNegocio c = actual();
+        return new Wifi(c.getWifiNombre() == null ? "" : c.getWifiNombre(), c.getWifiClave() == null ? "" : c.getWifiClave());
+    }
+
+    @Transactional
+    public Wifi actualizarWifi(Wifi w) {
+        String nombre = w == null || w.nombre() == null ? "" : w.nombre().trim();
+        String clave = w == null || w.clave() == null ? "" : w.clave();
+        if (nombre.length() > 32) throw new IllegalArgumentException("El nombre del Wi-Fi admite hasta 32 caracteres");
+        if (clave.length() > 63) throw new IllegalArgumentException("La clave del Wi-Fi admite hasta 63 caracteres");
+        if (nombre.isEmpty() && !clave.isEmpty()) throw new IllegalArgumentException("Escribe el nombre del Wi-Fi");
+        if (!clave.isEmpty() && clave.length() < 8)
+            throw new IllegalArgumentException("Las claves de Wi-Fi tienen al menos 8 caracteres");
+        ConfiguracionNegocio c = actual();
+        c.setWifiNombre(nombre.isEmpty() ? null : nombre);
+        c.setWifiClave(clave.isEmpty() ? null : clave);
+        dao.saveAndFlush(c);
+        auditoria.registrar(AccionAuditoria.WIFI_ACTUALIZADO, "ConfiguracionNegocio", c.getId(),
+            nombre.isEmpty() ? "Wi-Fi oculto en la carta" : "Red «" + nombre + "»" + (clave.isEmpty() ? " sin clave" : ""));
+        return wifi();
+    }
 
     private ConfiguracionNegocio actual() {
-        return dao.findById(1L).orElseThrow(() -> new IllegalStateException("Falta la configuración del negocio"));
+        long negocio = NegocioActual.requerido();
+        return dao.findById(negocio).orElseThrow(() -> new IllegalStateException("Falta la configuración del negocio"));
     }
 
     private String texto(String valor, String campo, int max) {

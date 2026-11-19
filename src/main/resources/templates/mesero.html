@@ -8,6 +8,12 @@
     <th:block th:replace="~{fragments/head :: branding}"></th:block>
     <link rel="stylesheet" th:href="@{/css/catalogo.css}">
     <script defer th:src="@{/js/catalogo.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/llamados.css}">
+    <script defer th:src="@{/js/llamados.js}"></script>
+    <th:block th:if="${modulos.contains('DIVISION_CUENTA')}">
+    <link rel="stylesheet" th:href="@{/css/division-cuenta.css}">
+    <script defer th:src="@{/js/division-cuenta.js}"></script>
+    </th:block>
     <style>
         .mesero-page { margin: 0; height: 100vh; height: 100dvh; overflow: hidden; background: var(--surface-page); color: var(--text-main); -webkit-tap-highlight-color: transparent; }
 
@@ -277,6 +283,8 @@
         .pay-select { flex: 1; min-width: 110px; margin: 0; padding: 8px; border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface-card); color: var(--text-main); font-weight: 700; font-size: 16px; }
         .act-btn { margin: 0; padding: 8px 14px; border: 0; border-radius: var(--radius-sm); font-weight: 800; font-size: .82rem; }
         .act-btn.cobrar { background: var(--status-error); color: var(--status-error-on); }
+        .act-btn.dividir { background: var(--status-info-soft); color: var(--status-info-text); border: 1px solid var(--status-info-border); }
+        .activo-abonado { margin: 6px 0; padding: 6px 10px; border-radius: var(--radius-sm); background: var(--status-info-soft); color: var(--status-info-text); font-weight: 700; font-size: .9rem; }
         .act-btn.agregar { background: var(--status-success); color: var(--status-success-on); }
         .act-btn.entregar { margin-top: 10px; background: var(--action-accent); color: var(--action-accent-on); }
         .act-btn.entregar:hover:not(:disabled) { background: var(--action-accent-hover); color: var(--action-accent-on-hover); }
@@ -1780,6 +1788,7 @@
                     if (!b || b.disabled) return;
                     const id = Number(b.dataset.id);
                     if (b.dataset.action === 'cobrar') this.cobrar(id);
+                    else if (b.dataset.action === 'dividir') { if (window.DivisionCuenta) DivisionCuenta.abrir(id, () => this.load()); }
                     else if (b.dataset.action === 'entregar') this.entregar(id);
                     else if (b.dataset.action === 'agregar') {
                         const p = this._pedidos.get(id);
@@ -1850,8 +1859,18 @@
                                 </div>`;
                     }).join('');
 
+                    const abonado = Number(p.abonado || 0);
+                    const dividir = window.DivisionCuenta
+                        ? `<button type="button" class="act-btn dividir" data-action="dividir" data-id="${escapeHtml(p.id)}">${abonado > 0 ? 'Cobrar saldo' : 'Dividir'}</button>`
+                        : '';
                     const pagoHtml = p.pagado
-                        ? `<div class="activo-pagado">✅ Pagado con ${escapeHtml(p.metodoPago)}</div>`
+                        ? `<div class="activo-pagado">✅ ${p.metodoPago === 'DIVIDIDO' ? 'Pagado en varias partes' : `Pagado con ${escapeHtml(p.metodoPago)}`}</div>`
+                        : abonado > 0
+                        ? `<div class="activo-abonado">Pagado ${MONEDA_HTML} ${abonado.toFixed(2)} · Falta ${MONEDA_HTML} ${Math.max(0, total - abonado).toFixed(2)}</div>
+                           <div class="activo-pay" id="pay-box-${p.id}">
+                            ${dividir}
+                            <button type="button" class="act-btn agregar" data-action="agregar" data-id="${escapeHtml(p.id)}">Agregar</button>
+                        </div>`
                         : `<div class="activo-pay" id="pay-box-${p.id}">
                             <select id="metodo-${p.id}" class="pay-select select-btn" data-id="${escapeHtml(p.id)}" aria-label="Método de pago">
                                 <option value="EFECTIVO">Efectivo</option>
@@ -1859,6 +1878,7 @@
                                 <option value="TARJETA">Tarjeta</option>
                             </select>
                             <button type="button" class="act-btn cobrar" data-action="cobrar" data-id="${escapeHtml(p.id)}">Cobrar</button>
+                            ${dividir}
                             <button type="button" class="act-btn agregar" data-action="agregar" data-id="${escapeHtml(p.id)}">Agregar</button>
                         </div>`;
                     const entregaHtml = p.estado === 'LISTO'
@@ -1940,6 +1960,7 @@
                         () => {
                             this._retryDelay = CONFIG.WS_RETRY_BASE_MS;
                             stomp.subscribe('/topic/mesero', msg => this._onMesero(JSON.parse(msg.body)));
+                            if (window.Llamados) Llamados.recargar();
                             stomp.subscribe('/topic/menu', msg => this._onMenu(JSON.parse(msg.body)));
                             stomp.subscribe('/topic/stock', msg => this._onStock(JSON.parse(msg.body)));
                         },
@@ -1948,6 +1969,7 @@
                 } catch (e) { console.warn('[WS] No disponible:', e); }
             },
             _onMesero(n) {
+                if (n.tipo && (n.tipo.startsWith('LLAMADO_') || n.tipo.startsWith('PEDIDO_QR'))) { if (window.Llamados) Llamados.recibir(n); return; }
                 if (n.estado === 'LISTO' || n.estado === 'EN_PREPARACION') {
                     const lbl = n.numeroMesa ? `${MESA} ${n.numeroMesa}` : (n.nombreCliente || LLEVAR);
                     Toast.show(n.estado === 'LISTO' ? 's' : 'i', n.estado === 'LISTO' ? '🟢' : '👨‍🍳', n.estado === 'LISTO' ? '¡Pedido Listo!' : 'En preparación', lbl);
@@ -2219,6 +2241,7 @@
             ActivosView.init();
             CatalogoOverlay.init();
             Clock.start();
+            if (window.Llamados) Llamados.init();
             await MenuLoader.load();
             WSManager.connect();
         })();

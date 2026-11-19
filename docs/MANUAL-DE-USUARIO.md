@@ -192,6 +192,26 @@ El círculo con tu inicial (arriba a la derecha) abre tu menú de sesión. Está
 5. **Usuarios:** crea una cuenta para cada persona de tu equipo.
 6. **Menú de hoy:** elige qué vendes hoy y publícalo.
 
+### Mi plan
+
+**Mi plan** muestra el plan contratado (Normal, Pro o Premium), su estado y vencimiento, cuánto estás usando de lo que incluye (mesas, productos y usuarios) y qué funciones tienes.
+
+- Los límites del plan son una **referencia**: si los superas, el sistema sigue funcionando y solo verás un aviso.
+- Las secciones que tu plan no incluye aparecen en el menú con la etiqueta **Pro** o **Premium**; al tocarlas se abre **Mi plan** con la función resaltada.
+- Cuando la suscripción o la prueba están por vencer, aparece un aviso arriba del panel.
+- Para cambiar de plan o activar una función, comunícate con soporte. El cambio es inmediato y no se pierde ningún dato.
+
+| Función | Normal | Pro | Premium |
+| --- | :---: | :---: | :---: |
+| Pedidos, cocina, menú del día, cobro, productos con foto, nombre, logo y moneda, reporte del día | ✓ | ✓ | ✓ |
+| Colores, eslogan y nombres propios («Mesa» o «Box», «Mesero» o «Garzón») | — | ✓ | ✓ |
+| Carta digital con QR por mesa, Wi-Fi, llamar al mesero y pedidos desde la carta | — | ✓ | ✓ |
+| Dividir la cuenta | — | ✓ | ✓ |
+| App instalable en celulares y tablets | — | ✓ | ✓ |
+| Reportes por semana y mes, lo más vendido y ventas por persona | — | ✓ | ✓ |
+| Comparación con el período anterior, horarios y exportación a Excel | — | — | ✓ |
+| Registro de actividad, varios administradores y carta sin la marca del sistema | — | — | ✓ |
+
 > **No pierdes lo que escribes:** si dejas un formulario a medias y cambias de sección, al volver aparece «Recuperamos lo que estabas escribiendo». Puedes continuar o pulsar **Descartar**. Antes de guardar algo importante, el sistema muestra un resumen y pide confirmación.
 
 ---
@@ -630,6 +650,29 @@ En la pantalla de inicio elige **Para llevar**, escribe el nombre del cliente y 
 - **Agregar** suma productos a un pedido que todavía no se pagó; si ya estaba listo o entregado, vuelve a cocina como pendiente y los productos nuevos aparecen marcados.
 - El pedido desaparece de la lista cuando está **entregado y cobrado**.
 
+### Dividir la cuenta (planes Pro y Premium)
+
+**Dividir** (o **Cobrar saldo**, si ya hay pagos) abre la cuenta del pedido con el total, lo pagado y lo que falta. Cada persona paga su parte con su propio método:
+
+| Forma | Cómo se usa |
+| --- | --- |
+| **Por productos** | Con **＋** y **−** eliges qué productos paga esta persona. Lo que ya se pagó no se puede volver a elegir. |
+| **Partes iguales** | Indica entre cuántas personas se divide. Cada una paga lo mismo; la última ajusta los centavos. |
+| **Otro monto** | Cualquier monto hasta lo que falta. |
+
+Escribe, si quieres, quién paga, elige el método y pulsa **Cobrar esta parte**. Cuando no falta nada, el pedido queda **pagado**. En los reportes, cada parte cuenta en su método de pago.
+
+### Avisos de las mesas (planes Pro y Premium)
+
+Cuando un cliente usa la carta de su mesa, aparece un aviso arriba con sonido y un botón 🔔 con la cantidad de avisos pendientes:
+
+| Aviso | Qué hacer |
+| --- | --- |
+| 🔔 **La mesa llama al mesero** / 🧾 **pide la cuenta** (con la forma de pago) | Pulsa **🏃 Voy** para que el cliente vea en su celular que alguien ya va. Cuando lo atiendas, **✓ Atendido**. |
+| 📝 **La mesa pide desde la carta** | Revisa los productos y las notas. **✓ Aprobar** lo envía a cocina (si la mesa ya tiene un pedido sin cobrar, se suma a ese). **Rechazar** permite escribir el motivo, que el cliente verá en su carta. |
+
+Nada llega a la cocina sin que alguien del personal lo apruebe.
+
 ---
 
 ## 15. Catálogo para el cliente
@@ -650,6 +693,17 @@ Muestra tus productos de hoy con fotos grandes, descripción, precio y disponibi
 | **6** | Producto | Foto, disponibilidad y precio. Tócalo para ver la descripción y los tamaños. |
 
 Al tocar un producto se ve su descripción y sus tamaños; **Agregar al pedido** lo lleva directo al pedido que está tomando el mesero.
+
+### Carta digital con QR (planes Pro y Premium)
+
+En **Administración → Carta y QR** configuras el Wi-Fi para clientes e imprimes un cartel con QR para cada mesa (y uno general de la carta). Al escanearlo, el cliente abre la carta en su celular, sin instalar nada:
+
+- ve los productos de hoy con fotos, precios y disponibilidad;
+- toca **📶 Wi-Fi** para ver la red y copiar la clave;
+- toca **🔔 Llamar mesero** o **🧾 Pedir la cuenta**. Primero verá «Avisamos al mesero» y, cuando alguien pulse **Voy**, «Ya viene»;
+- con **Agregar al pedido** arma su pedido. En **🛒 Mi pedido** revisa, agrega una nota y lo envía. Verá «Esperando que el mesero lo confirme» hasta que se apruebe o se rechace.
+
+Genera los carteles entrando al sistema por su dirección pública (la de internet), no por `localhost`, para que los QR funcionen desde cualquier celular.
 
 ---
 

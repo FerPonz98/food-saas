@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title th:text="|Mi plan — ${negocio.nombreNegocio}|">Mi plan</title>
+  <th:block th:replace="~{fragments/head :: branding}"></th:block>
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+  <link rel="stylesheet" th:href="@{/css/admin-plan.css}">
+  <script defer th:src="@{/js/security.js}"></script>
+  <script defer th:src="@{/js/borradores.js}"></script>
+  <script defer th:src="@{/js/admin-shell.js}"></script>
+  <script defer th:src="@{/js/admin-plan.js}"></script>
+</head>
+<body class="admin-shell">
+  <div th:replace="~{fragments/admin-layout :: barra('plan')}"></div>
+  <main class="admin-main" id="contenido" tabindex="-1">
+    <header class="admin-page-head">
+      <div>
+        <h1>Mi plan</h1>
+        <p class="admin-page-desc">Tu plan, cuánto lo estás usando y qué funciones incluye. Para cambiar de plan comunícate con soporte: el cambio es inmediato y no se pierde ningún dato.</p>
+      </div>
+    </header>
+
+    <div class="plan-aviso-modulo" id="plan-aviso-modulo" role="status" hidden></div>
+
+    <section class="admin-card" aria-labelledby="plan-resumen-titulo">
+      <div class="admin-card-head">
+        <h2 id="plan-resumen-titulo">Suscripción</h2>
+      </div>
+      <div class="admin-card-body">
+      <dl class="plan-resumen" id="plan-resumen">
+        <div><dt>Plan</dt><dd id="plan-nombre">…</dd></div>
+        <div><dt>Estado</dt><dd id="plan-estado">…</dd></div>
+        <div><dt>Facturación</dt><dd id="plan-ciclo">…</dd></div>
+        <div><dt>Vence</dt><dd id="plan-vence">…</dd></div>
+      </dl>
+      </div>
+    </section>
+
+    <section class="admin-card" aria-labelledby="plan-uso-titulo">
+      <div class="admin-card-head">
+        <h2 id="plan-uso-titulo">Uso del plan</h2>
+        <p>Los límites son una referencia del plan, no un bloqueo: el sistema sigue funcionando aunque los superes.</p>
+      </div>
+      <div class="admin-card-body">
+        <div class="plan-uso" id="plan-uso"></div>
+        <ul class="plan-avisos" id="plan-avisos"></ul>
+      </div>
+    </section>
+
+    <section class="admin-card" aria-labelledby="plan-modulos-titulo">
+      <div class="admin-card-head">
+        <h2 id="plan-modulos-titulo">Funciones</h2>
+      </div>
+      <div class="admin-card-body">
+        <div class="plan-modulos" id="plan-modulos"></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

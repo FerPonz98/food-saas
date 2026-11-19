@@ -167,6 +167,34 @@
 .admin-nav-label { font-weight: 700; font-size: .95rem; }
 .admin-nav-hint { color: var(--text-muted); font-size: .78rem; line-height: 1.3; }
 .admin-nav-item[aria-current="page"] .admin-nav-hint { color: var(--brand-primary-text); }
+.plan-bloqueado { padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); background: var(--status-info-soft); color: var(--status-info-text); }
+.plan-bloqueado a { color: inherit; font-weight: 800; }
+.admin-nav-plan {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  border: 1px solid var(--status-info-border);
+  background: var(--status-info-soft);
+  color: var(--status-info-text);
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+}
+.admin-aviso-suscripcion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--status-warning-border);
+  background: var(--status-warning-soft);
+  color: var(--status-warning-text);
+  font-size: .9rem;
+  font-weight: 600;
+}
+.admin-aviso-suscripcion a { color: inherit; font-weight: 800; }
 .admin-nav-pie { margin-top: auto; padding-top: var(--space-3); border-top: 1px solid var(--border-main); }
 .admin-nav-vista { min-height: 48px; }
 .admin-nav-vista > span:first-child { width: 36px; text-align: center; font-size: 1.05rem; flex-shrink: 0; }
@@ -499,6 +527,7 @@
     box-shadow: none;
   }
   .admin-main { margin-left: var(--admin-nav-w); padding: var(--space-6); }
+  .admin-aviso-suscripcion { margin-left: var(--admin-nav-w); padding-left: var(--space-6); }
   .admin-actionbar { left: var(--admin-nav-w); padding-left: var(--space-6); padding-right: max(var(--space-6), env(safe-area-inset-right)); }
   .admin-shell .notice-ui { left: calc(var(--admin-nav-w) + var(--space-4)); }
 }

@@ -21,7 +21,7 @@ import com.sistema.pedidosCori.service.ConfiguracionNegocioService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
-@ControllerAdvice(assignableTypes = { PageController.class, AdminPageController.class, CuentaController.class })
+@ControllerAdvice(assignableTypes = { PageController.class, AdminPageController.class, CuentaController.class, SuperAdminController.class })
 @RequiredArgsConstructor
 public class SesionAdvice {
     private final ConfiguracionNegocioService negocioService;
@@ -45,6 +45,8 @@ public class SesionAdvice {
             vistas.add(Map.of("url", "/cocina", "label", negocio.getEtiquetaRolCocina()));
         if (roles.contains("ROLE_ADMIN"))
             vistas.add(Map.of("url", "/admin", "label", "Administración"));
+        if (roles.contains("ROLE_SUPERADMIN"))
+            vistas.add(Map.of("url", "/superadmin", "label", "Plataforma"));
 
         String rol = roles.stream().filter(r -> r.startsWith("ROLE_"))
             .map(r -> r.substring(5)).findFirst().orElse("");
@@ -52,6 +54,7 @@ public class SesionAdvice {
             case "ADMIN" -> "Administrador";
             case "MESERO" -> negocio.getEtiquetaRolMesero();
             case "COCINA" -> negocio.getEtiquetaRolCocina();
+            case "SUPERADMIN" -> "Superadministrador";
             default -> rol;
         };
 

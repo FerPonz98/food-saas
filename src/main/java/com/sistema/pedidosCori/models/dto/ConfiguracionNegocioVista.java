@@ -1,6 +1,8 @@
 package com.sistema.pedidosCori.models.dto;
 
+import java.util.List;
 import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -22,4 +24,8 @@ public class ConfiguracionNegocioVista {
     private final String logoUrl;
     private final String logoMimeType;
     private final Map<String, String> tema;
+    private final String slug;
+    private final String planCodigo;
+    private final String planNombre;
+    private final List<String> modulos;
 }

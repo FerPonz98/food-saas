@@ -1,5 +1,8 @@
 package com.sistema.pedidosCori.models.entity;
 
+import org.hibernate.annotations.TenantId;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -34,6 +37,11 @@ public class RegistroAuditoria {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @TenantId
+    @JsonIgnore
+    @Column(name = "negocio_id", nullable = false, updatable = false)
+    private Long negocioId;
 
     @Column(nullable = false)
     private LocalDateTime fecha;

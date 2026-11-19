@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title th:text="|Carta y QR — ${negocio.nombreNegocio}|">Carta y QR</title>
+  <th:block th:replace="~{fragments/head :: branding}"></th:block>
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+  <link rel="stylesheet" th:href="@{/css/admin-carta-qr.css}">
+  <script defer th:src="@{/js/security.js}"></script>
+  <script defer th:src="@{/js/admin-shell.js}"></script>
+  <script defer th:src="@{/js/admin-carta-qr.js}"></script>
+</head>
+<body class="admin-shell" th:attr="data-mesas=${negocio.cantidadPuntosAtencion}">
+  <div th:replace="~{fragments/admin-layout :: barra('carta-qr')}"></div>
+  <main class="admin-main" id="contenido" tabindex="-1">
+    <header class="admin-page-head">
+      <div>
+        <h1>Carta y QR</h1>
+        <p class="admin-page-desc">Pon un cartel con código QR en cada mesa. Tus clientes lo escanean con la cámara del celular para ver la carta con fotos, conectarse al Wi-Fi, llamar al personal o pedir la cuenta. Los avisos llegan al momento a la pantalla de atención.</p>
+      </div>
+    </header>
+
+    <section class="admin-card" aria-labelledby="titulo-wifi">
+      <div class="admin-card-head">
+        <h2 id="titulo-wifi">Wi-Fi para clientes</h2>
+        <p>Se muestra en la carta de la mesa y como un segundo QR en el cartel: con la cámara se conectan sin escribir la clave. Déjalo vacío si no quieres ofrecer Wi-Fi.</p>
+      </div>
+      <form class="admin-card-body" id="form-wifi" novalidate>
+        <div class="admin-form-grid">
+          <div class="admin-field">
+            <label for="wifiNombre">Nombre de la red</label>
+            <input class="field" id="wifiNombre" name="nombre" maxlength="32" autocomplete="off" spellcheck="false" placeholder="Ej.: Restaurante_Clientes" aria-describedby="error-wifiNombre">
+            <p class="admin-help">Escríbelo igual que aparece en el celular, con mayúsculas y guiones.</p>
+            <p class="admin-error" id="error-wifiNombre" aria-live="polite"></p>
+          </div>
+          <div class="admin-field">
+            <label for="wifiClave">Clave</label>
+            <input class="field" id="wifiClave" name="clave" maxlength="63" autocomplete="off" spellcheck="false" placeholder="Vacío si la red no tiene clave" aria-describedby="error-wifiClave">
+            <p class="admin-help">Te recomendamos una red solo para clientes, separada de la de tu caja.</p>
+            <p class="admin-error" id="error-wifiClave" aria-live="polite"></p>
+          </div>
+        </div>
+        <div class="qr-form-pie">
+          <span class="admin-actionbar-estado" id="wifi-estado" aria-live="polite"></span>
+          <button type="submit" class="button-primary" id="wifi-guardar">Guardar Wi-Fi</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="admin-card" aria-labelledby="titulo-carteles">
+      <div class="admin-card-head">
+        <h2 id="titulo-carteles">Carteles para imprimir</h2>
+        <p th:if="${negocio.cantidadPuntosAtencion > 0}">Cada cartel lleva el número de su mesa: así el personal sabe de dónde viene cada aviso. Imprímelos y colócalos en un portacartel o plastifícalos.</p>
+        <p th:if="${negocio.cantidadPuntosAtencion == 0}">No tienes mesas configuradas (puedes agregarlas en <a th:href="@{/admin/local}">Mi local</a>). Igual puedes imprimir un QR de la carta para el mostrador o tus redes.</p>
+      </div>
+      <div class="admin-card-body">
+        <div class="qr-controles">
+          <div class="admin-field" th:if="${negocio.cantidadPuntosAtencion > 0}">
+            <label for="qr-desde" th:text="|Desde la ${#strings.toLowerCase(negocio.puntoAtencionSingular)}|">Desde la mesa</label>
+            <input class="field" id="qr-desde" type="number" inputmode="numeric" min="1" th:max="${negocio.cantidadPuntosAtencion}" value="1">
+          </div>
+          <div class="admin-field" th:if="${negocio.cantidadPuntosAtencion > 0}">
+            <label for="qr-hasta" th:text="|Hasta la ${#strings.toLowerCase(negocio.puntoAtencionSingular)}|">Hasta la mesa</label>
+            <input class="field" id="qr-hasta" type="number" inputmode="numeric" min="1" th:max="${negocio.cantidadPuntosAtencion}" th:value="${negocio.cantidadPuntosAtencion}">
+          </div>
+          <label class="qr-check">
+            <input type="checkbox" id="qr-con-wifi" checked>
+            <span>Incluir QR del Wi-Fi</span>
+          </label>
+          <button type="button" class="button-primary qr-imprimir" id="qr-imprimir">🖨️ Imprimir carteles</button>
+        </div>
+        <p class="admin-help" id="qr-resumen" aria-live="polite"></p>
+        <p class="qr-probar">
+          <a id="qr-probar" th:href="${negocio.cantidadPuntosAtencion > 0} ? @{/n/{slug}/mesa/1(slug=${negocio.slug})} : @{/n/{slug}/carta(slug=${negocio.slug})}" target="_blank" rel="noopener">Ver la carta como la ve el cliente ↗</a>
+        </p>
+      </div>
+    </section>
+
+    <div class="qr-hojas" id="qr-hojas" aria-label="Vista previa de los carteles"></div>
+  </main>
+</body>
+</html>

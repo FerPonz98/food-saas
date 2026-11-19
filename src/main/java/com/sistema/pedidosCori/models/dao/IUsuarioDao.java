@@ -1,6 +1,7 @@
 package com.sistema.pedidosCori.models.dao;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,8 +18,23 @@ public interface IUsuarioDao extends JpaRepository<Usuario, Long> {
     boolean existsByUsername(String username);
     long countByRolAndActivoTrue(Rol rol);
 
+    List<Usuario> findByNegocioId(Long negocioId);
+
+    Optional<Usuario> findByIdAndNegocioId(Long id, Long negocioId);
+
+    long countByNegocioId(Long negocioId);
+
+    long countByNegocioIdAndActivoTrue(Long negocioId);
+
+    long countByNegocioIdAndRolAndActivoTrue(Long negocioId, Rol rol);
+
+    Optional<Usuario> findFirstByNegocioIdAndRolOrderByIdAsc(Long negocioId, Rol rol);
+
     @Transactional
     @Modifying
     @Query("UPDATE Usuario u SET u.ultimoAcceso = :fecha WHERE u.username = :username")
     int registrarAcceso(@Param("username") String username, @Param("fecha") LocalDateTime fecha);
+
+    @Query("SELECT u.negocioId, COUNT(u), MAX(u.ultimoAcceso) FROM Usuario u WHERE u.activo = true AND u.negocioId IS NOT NULL GROUP BY u.negocioId")
+    List<Object[]> resumenPorNegocio();
 }

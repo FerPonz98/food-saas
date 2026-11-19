@@ -4,20 +4,25 @@ Referencia técnica para quien mantenga o extienda el sistema: arquitectura, mod
 
 ## Arquitectura
 
-Aplicación monolítica Spring Boot que sirve las vistas Thymeleaf y una API JSON, con WebSocket STOMP/SockJS para las actualizaciones en tiempo real. El frontend es HTML, CSS y JavaScript sin frameworks ni proceso de build.
+Aplicación monolítica Spring Boot **multiempresa** que sirve las vistas Thymeleaf y una API JSON, con WebSocket STOMP/SockJS para las actualizaciones en tiempo real. El frontend es HTML, CSS y JavaScript sin frameworks ni proceso de build. Una sola instalación atiende a varios negocios con datos aislados; los planes y módulos se describen en [Plataforma](PLATAFORMA.md).
 
 ```text
 src/main/java/com/sistema/pedidosCori/
-  components/   DataInitializer (usuarios iniciales, categorías, menú de ejemplo) y
+  components/   PlataformaInicial (planes, negocio principal y superadministrador),
+                DataInitializer (usuarios iniciales, categorías y menú de ejemplo del negocio principal) y
                 RecuperacionAcceso (contraseña temporal emitida desde el servidor)
-  config/       SecurityConfig, WebSocketConfig, AuditoriaConfig, LoginThrottleFilter,
-                CuentaPendienteFilter
-  controller/   Páginas (PageController, AdminPageController, CuentaController), API (ApiController,
-                AdminApiController, CategoriaController, PlatoImagenController,
-                ConfiguracionNegocioController), WsController, advices y manejo de errores
+  config/       SecurityConfig, NegocioFiltro, ResolutorNegocio, ModuloInterceptor, RequiereModulo,
+                WebSocketConfig, AuditoriaConfig, LoginThrottleFilter, CuentaPendienteFilter
+  controller/   Páginas (PageController, AdminPageController, CuentaController, CartaPublicaController,
+                SuperAdminController), API (ApiController, AdminApiController, CategoriaController,
+                PlatoImagenController, ConfiguracionNegocioController, CartaQrController, LlamadoController,
+                SolicitudPedidoController, DivisionCuentaController, PwaController), advices y manejo de errores
   models/       entity, dao (Spring Data JPA) y dto
-  service/      Pedidos, usuarios, cuenta (primer ingreso), política de contraseñas,
-                términos, categorías, fotos, configuración, tema, auditoría, resumen y reportes
+  service/      NegocioActual, EjecutorNegocio, ModuloService, PlataformaService, pedidos (ComandaService),
+                carta pública, llamados, pedidos desde la carta, división de cuenta, usuarios, cuenta,
+                política de contraseñas, términos, categorías, fotos, configuración, tema, auditoría,
+                resumen y reportes
+src/main/resources/db/migration/   Migraciones Flyway (V1 esquema base, V2 multiempresa, V3 módulos Pro)
 src/main/resources/
   templates/    login, cuenta, terminos, mesero, cocina, catalogo, admin/* y fragments/*
   static/css/   theme.css (tokens), admin.css (panel), catalogo.css y una hoja por página
@@ -27,7 +32,31 @@ src/main/resources/
 src/test/       Pruebas con H2 (src/test/resources/application.properties)
 ```
 
-El esquema lo mantiene Hibernate (`spring.jpa.hibernate.ddl-auto=update`): las columnas nuevas deben ser nulables o tener valor por defecto para no romper bases existentes.
+## Base de datos y migraciones
+
+El esquema lo crean y actualizan las **migraciones Flyway** de `src/main/resources/db/migration`; Hibernate solo lo **valida** al arrancar (`ddl-auto=validate`), así que una entidad que no coincide con la base impide iniciar.
+
+- `V1__esquema_base.sql` recrea el esquema de un solo negocio. Es idempotente (`IF NOT EXISTS`) para completar también las bases creadas por versiones anteriores, cuando Hibernate administraba el esquema. Con `baseline-on-migrate` y `baseline-version=0`, una base existente se marca en la versión 0 y recibe V1, V2 y V3.
+- `V2__multiempresa_y_planes.sql` crea planes, negocios y el registro de la plataforma, inserta el negocio 1 (`principal`, Premium) y asigna a él todos los datos existentes.
+- `V3__modulos_pro.sql` agrega la confirmación de llamados, los pedidos desde la carta y los pagos parciales.
+
+Para cambiar el esquema, crea `V4__descripcion.sql` (nunca edites una migración ya publicada) y ajusta la entidad. Las migraciones usan SQL de PostgreSQL; las pruebas usan H2 con `create-drop` y Flyway desactivado, así que **una migración nueva se verifica contra PostgreSQL** (por ejemplo, levantando `docker compose` sobre una copia de la base) antes de entregarla.
+
+## Multiempresa
+
+- **Aislamiento.** Las entidades de un negocio (`Pedido`, `DetallePedido`, `Plato`, `PresentacionPlato`, `PlatoImagen`, `Categoria`, `RegistroAuditoria`, `LlamadoMesa`, `SolicitudPedido`, `SolicitudPedidoItem`, `PagoParcial`, `PagoParcialItem`) tienen la columna `negocio_id` marcada con `@TenantId` de Hibernate. Hibernate la completa al guardar y la agrega como filtro a **todas** las consultas: JPQL, derivadas, `findById` y actualizaciones masivas (`AislamientoHibernateTests` lo verifica). No escribas SQL nativo sobre estas tablas.
+- **Negocio actual.** `NegocioFiltro` (dentro de la cadena de seguridad) fija `NegocioActual` en cada solicitud: el negocio del usuario autenticado (`UsuarioSesion.negocioId`), el de la dirección pública `/n/{slug}/…` o `/api/publico/{slug}/…`, o la **raíz** (`-1`) para el superadministrador, que ve todos los negocios. Sin negocio (`0`), las consultas no devuelven nada. `ResolutorNegocio` entrega ese valor a Hibernate al abrir cada sesión.
+- **Cambiar de negocio en código.** Usa `EjecutorNegocio.en(negocioId, () -> …)`: abre una transacción y una sesión nuevas con ese negocio (la sesión abierta por la vista ya tiene fijado el negocio de la solicitud). Las tareas de arranque, la auditoría y la plataforma lo usan.
+- **No están aisladas por `@TenantId`:** `Usuario` (tiene `negocio_id` explícito porque el ingreso busca por nombre de usuario en todos los negocios; los nombres de usuario son únicos en toda la plataforma y `UsuarioService` filtra por negocio), `ConfiguracionNegocio` (su `id` es el del negocio), `Negocio`, `Plan` y `RegistroPlataforma`.
+- **Suspensión.** Si el negocio está suspendido o cancelado, el ingreso se rechaza (`LockedException` → `/login?suspendido`), las páginas redirigen a `/suspendido`, la API responde `403 NEGOCIO_SUSPENDIDO` y la carta pública responde 404.
+- **Tiempo real.** Los clientes se suscriben a `/topic/cocina`, `/topic/mesero`, `/topic/stock` y `/topic/menu` como siempre; `WebSocketConfig` reescribe la suscripción a `/topic/n{negocio}/…` según el usuario de la sesión y hace lo mismo con cada mensaje que publica el servidor, según `NegocioActual`. Se rechazan las suscripciones a temas de otro negocio y los mensajes que los clientes intenten publicar en `/topic`.
+
+## Planes y módulos
+
+- `Modulo` enumera las funciones que dependen del plan. Los módulos de un negocio son los de su plan, más o menos los ajustes de `negocio_modulo`. `ModuloService` los calcula y los guarda 15 segundos en memoria; los cambios desde la plataforma invalidan esa memoria.
+- **Backend:** `@RequiereModulo(Modulo.X)` en un controlador o método. `ModuloInterceptor` responde `403 {codigo: MODULO_NO_INCLUIDO, modulo}` en la API, redirige a `/admin/plan?modulo=X` en el panel y responde 404 en las páginas públicas. Los servicios que tienen reglas parciales lo verifican con `ModuloService.tiene()` o `exigir()`: colores, eslogan y nombres propios (`ConfiguracionNegocioService`), segundo administrador (`UsuarioService`) y alcance de los reportes (`ReporteService.generarSegunPlan`).
+- **Frontend:** `negocio.modulos` (también `window.NEGOCIO.modulos`) y el atributo `modulos` del modelo permiten ocultar o bloquear en las plantillas, por ejemplo `th:if="${modulos.contains('CARTA_QR')}"`. Ocultar no reemplaza la validación del backend.
+- **Límites sugeridos.** `Plan.mesasIncluidas`, `productosIncluidos` y `usuariosIncluidos` no bloquean: `PlataformaService` calcula el uso y genera avisos para **Mi plan** y para la plataforma.
 
 ## Modelo de datos
 
@@ -39,18 +68,28 @@ El esquema lo mantiene Hibernate (`spring.jpa.hibernate.ddl-auto=update`): las c
 | `PresentacionPlato` | Tamaños con precio, stock y `modalidad` (MESA, LLEVAR, AMBAS). |
 | `Categoria` | `codigo` inmutable, `nombre`, `icono`, `orden`, `activa`, `llevaAcompanamiento`, `esAcompanamiento`, `cantidadSugerida`. |
 | `PlatoImagen` | Bytes de la foto (`bytea`), separada de `Plato` para no cargarla en las listas. |
-| `ConfiguracionNegocio` | Registro único con marca, colores, etiquetas, cantidad de puntos de atención, moneda y logo. |
-| `Usuario` | `rol` ADMIN, MESERO o COCINA; `activo`; `ultimoAcceso`; `debeCambiarPassword`; `passwordActualizadaEn`; `terminosVersion` y `terminosAceptadosEn`. |
+| `ConfiguracionNegocio` | Uno por negocio (mismo `id`): marca, colores, etiquetas, cantidad de puntos de atención, moneda, logo y Wi-Fi. |
+| `Usuario` | `negocioId` (nulo solo para `SUPERADMIN`); `rol` ADMIN, MESERO, COCINA o SUPERADMIN; `activo`; `ultimoAcceso`; `debeCambiarPassword`; `passwordActualizadaEn`; `terminosVersion` y `terminosAceptadosEn`. |
+| `Negocio` | Nombre, `slug` único, `plan`, `estado` (PRUEBA, ACTIVO, SUSPENDIDO, CANCELADO), `ciclo`, inicio, vencimiento, contacto, notas y `ajustesModulos` (`negocio_modulo`). |
+| `Plan` | Código NORMAL, PRO o PREMIUM; precios mensual, anual y de implementación; límites sugeridos; `activo`; módulos (`plan_modulo`). |
+| `LlamadoMesa` | Llamado al mesero o pedido de cuenta desde la carta: `confirmadoEn/Por` («Voy») y `atendidoEn/Por`. |
+| `SolicitudPedido` | Pedido armado por el cliente en la carta: `token` para consultar su estado, `estado` PENDIENTE/APROBADA/RECHAZADA, ítems con precio de referencia y el `pedidoId` resultante. |
+| `PagoParcial` | Parte de una cuenta dividida: `modo` PRODUCTOS/PARTES/MONTO, monto, método, persona e ítems pagados. `Pedido.abonado` suma lo cobrado. |
+| `RegistroPlataforma` | Acciones del superadministrador (alta de negocios, suscripciones, módulos, planes). |
 | `RegistroAuditoria` | Fecha, usuario, acción (`AccionAuditoria`), entidad, id y detalle legible. |
 
 **Flujo de pedidos:** COCINA pasa PENDIENTE → EN_PREPARACION → LISTO; MESERO pasa LISTO → ENTREGADO; ADMIN puede hacer ambas cosas. El cobro es independiente del estado. Agregar productos a un pedido no pagado en EN_PREPARACION, LISTO o ENTREGADO lo devuelve a PENDIENTE, y `ultimoDetallePreparadoId` permite resaltar en cocina lo nuevo. El dominio no tiene anulación de pedidos.
+
+**Pedidos desde la carta:** el cliente envía una `SolicitudPedido`; el mesero la aprueba (se crea el pedido, o se suma al pedido abierto de la mesa, con el mismo descuento de stock y aviso a cocina que un pedido normal, vía `ComandaService`) o la rechaza con un motivo. El cliente consulta el estado con su `token`. Los precios de la solicitud son de referencia: al aprobar se usan los vigentes.
+
+**División de cuenta:** cada `PagoParcial` descuenta del saldo. Por productos se asignan unidades de cada línea (no se puede pagar dos veces la misma unidad); por partes iguales se cobra `total / n` y la última parte ajusta los centavos; por monto, cualquier valor hasta el saldo. Al llegar a cero el pedido queda pagado; si hubo varios métodos, `metodoPago = DIVIDIDO` y los reportes reparten el monto por método según los pagos parciales. Un pedido con pagos parciales no se cobra con `/pagar`.
 
 **Stock:** al crear o ampliar un pedido se descuenta el stock del tamaño si la línea tiene tamaño y, si no, el del plato; también el del acompañamiento. Los cambios se publican en `/topic/stock`.
 
 ## Convenciones
 
-- **Sin comentarios en el código.** Nombres claros en español en lugar de comentarios.
-- **JavaScript sin frameworks.** Sin CDN: las librerías de terceros van en `static/js/vendor/` (la CSP solo permite `self`). Sin dependencias nuevas de Maven sin justificarlo.
+- **Sin comentarios en el código** (Java, JavaScript, CSS ni SQL). Nombres claros en español en lugar de comentarios.
+- **JavaScript sin frameworks.** Sin CDN: las librerías de terceros van en `static/js/vendor/` (la CSP solo permite `self`). Sin dependencias nuevas de Maven sin justificarlo. Las actuales, además de Spring Boot: `flyway` (migraciones), `zxing core` (QR en SVG), `jsvg` e `imageio-webp` (convertir logos SVG y WebP en íconos PNG de la app instalable).
 - **Seguridad en el backend:** toda ruta nueva se declara en `SecurityConfig` con su rol; ocultar algo en la interfaz no es seguridad.
 - **Peticiones mutantes** con `secureFetch()` (añade el token CSRF). Errores de API con `apiError()`; las respuestas de error son `{mensaje, codigo}`.
 - **Nunca interpolar datos en `innerHTML` sin `escapeHtml()`**; preferir `textContent` y APIs del DOM. Nada de `onclick` con datos interpolados: usar `data-*` y delegación.
@@ -70,11 +109,14 @@ El esquema lo mantiene Hibernate (`spring.jpa.hibernate.ddl-auto=update`): las c
 
 | Ruta | Roles |
 | --- | --- |
-| `/login`, `/terminos`, `/css/**`, `/js/**`, `/img/**`, `/branding/logo` | Público |
-| `/cuenta` | Cualquier usuario autenticado (primer ingreso y cambio de contraseña propia) |
+| `/login`, `/terminos`, `/css/**`, `/js/**`, `/img/**`, `/branding/logo`, `/sw.js`, `/pwa/**` | Público |
+| `/n/{slug}/login`, `/n/{slug}/logo`, `/n/{slug}/manifest.webmanifest`, `/n/{slug}/pwa/*` | Público (ingreso, logo e instalación de cada negocio) |
+| `/n/{slug}/carta`, `/n/{slug}/mesa/{n}` (y las antiguas `/carta`, `/mesa/{n}`, que redirigen al negocio principal) | Público, con `CARTA_QR` |
+| `/cuenta`, `/suspendido` | Cualquier usuario autenticado |
+| `/superadmin`, `/superadmin/planes` | SUPERADMIN |
 | `/mesero`, `/catalogo` | ADMIN, MESERO |
 | `/cocina` | ADMIN, COCINA |
-| `/admin/**` (inicio, menu-hoy, productos, categorias, local, usuarios, reportes, actividad, apariencia) | ADMIN |
+| `/admin/**` (inicio, menu-hoy, productos, categorias, local, carta-qr, usuarios, apariencia, plan, reportes, actividad) | ADMIN; `carta-qr` requiere `CARTA_QR` y `actividad`, `AUDITORIA` |
 
 ### API
 
@@ -98,9 +140,19 @@ El esquema lo mantiene Hibernate (`spring.jpa.hibernate.ddl-auto=update`): las c
 | `GET/POST/PUT/DELETE /api/admin/usuarios/**` | ADMIN | Usuarios; `PUT .../{id}/password` asigna una contraseña temporal. Cambios de rol, estado o contraseña expiran las sesiones del usuario. |
 | `GET /api/admin/auditoria`, `.../acciones`, `.../usuarios` | ADMIN | Registro de actividad paginado y filtrable. |
 | `GET /api/admin/resumen-hoy` | ADMIN | Resumen del día para el Inicio. |
-| `GET /api/admin/reportes`, `GET /api/admin/reportes/csv?tipo=pedidos\|productos\|empleados` | ADMIN | Reportes y exportación CSV. |
+| `GET /api/admin/reportes`, `GET /api/admin/reportes/csv?tipo=pedidos\|productos\|empleados` | ADMIN | Reportes según el plan (sin `REPORTES_COMPLETOS`, solo hoy; sin `REPORTES_AVANZADOS`, sin comparación ni horarios) y exportación CSV (`REPORTES_AVANZADOS`). |
+| `GET /api/admin/plan` | ADMIN | Plan, estado, uso, avisos y módulos del negocio. |
+| `GET/PUT /api/admin/configuracion/wifi`, `GET /admin/qr/mesa/{n}.svg`, `/admin/qr/carta.svg`, `/admin/qr/wifi.svg` | ADMIN, `CARTA_QR` | Wi-Fi y carteles QR. |
+| `GET /api/llamados`, `PUT /api/llamados/{id}/confirmar`, `PUT /api/llamados/{id}/atender` | ADMIN, MESERO, `LLAMADOS` | Avisos de las mesas. |
+| `GET /api/solicitudes`, `PUT /api/solicitudes/{id}/aprobar`, `PUT /api/solicitudes/{id}/rechazar` | ADMIN, MESERO, `PEDIDOS_QR` | Pedidos enviados desde la carta. |
+| `GET /api/pedidos/{id}/cuenta`, `POST /api/pedidos/{id}/pagos` | ADMIN, MESERO, `DIVISION_CUENTA` | Cuenta dividida y pagos parciales. |
+| `GET /api/publico/{slug}/carta`, `…/platos/{id}/imagen`, `…/mesa/{n}/wifi` | Público, `CARTA_QR` | Carta, fotos y Wi-Fi. |
+| `GET/POST /api/publico/{slug}/mesa/{n}/llamados` | Público, `LLAMADOS` | Llamar al mesero o pedir la cuenta (límite por dirección IP). |
+| `POST /api/publico/{slug}/mesa/{n}/pedidos`, `GET …/pedidos/{token}` | Público, `PEDIDOS_QR` | Enviar un pedido y consultar su estado. |
+| `GET /api/superadmin/negocios`, `POST /api/superadmin/negocios`, `PUT /api/superadmin/negocios/{id}`, `PUT …/{id}/suscripcion`, `PUT …/{id}/modulos`, `POST …/{id}/restablecer-acceso` | SUPERADMIN | Negocios y suscripciones. |
+| `GET /api/superadmin/planes`, `PUT /api/superadmin/planes/{codigo}`, `GET /api/superadmin/modulos`, `GET /api/superadmin/registro` | SUPERADMIN | Planes, módulos e historial de la plataforma. |
 
-**WebSocket** (`/ws`, STOMP): `/topic/cocina`, `/topic/mesero`, `/topic/stock` (`{platoId, presentacionId?, stockRestante}`) y `/topic/menu` (`ACTUALIZACION_MENU` tras cambios de menú, productos o categorías).
+**WebSocket** (`/ws`, STOMP): `/topic/cocina`, `/topic/mesero`, `/topic/stock` (`{platoId, presentacionId?, stockRestante}`) y `/topic/menu` (`ACTUALIZACION_MENU` tras cambios de menú, productos o categorías), siempre del negocio del usuario. En `/topic/mesero` también llegan `LLAMADO_MESA`, `LLAMADO_CONFIRMADO`, `LLAMADO_ATENDIDO`, `PEDIDO_QR` y `PEDIDO_QR_REVISADO`.
 
 ## Seguridad de acceso
 
@@ -109,7 +161,8 @@ El esquema lo mantiene Hibernate (`spring.jpa.hibernate.ddl-auto=update`): las c
 - **Contraseñas de demostración:** al arrancar, si `admin`, `mesero` o `cocina` conservan su contraseña de demostración, se marcan para cambio obligatorio. En `prod` no se arranca con `SEED_ADMIN_PASSWORD` vacía o de demostración, y `mesero`/`cocina` solo se crean si se definen sus variables.
 - **Términos:** el texto está en `templates/terminos.html`. Al modificarlo de forma sustancial, sube `Terminos.VERSION` y `Terminos.VIGENTE_DESDE`: todos los usuarios deberán aceptarlo de nuevo. Cada aceptación se audita con versión e IP.
 - **Cambio de contraseña propio:** exige la contraseña actual y expira las demás sesiones del usuario.
-- **Recuperación:** `RECUPERAR_ACCESO=<usuario>` arranca la aplicación en un puerto aleatorio, emite una contraseña temporal para un administrador (o lo crea si no existe), la imprime solo en la consola, la audita y termina con código 0 (2 si el usuario no es administrador). No hay credenciales maestras ni accesos del proveedor.
+- **Recuperación:** `RECUPERAR_ACCESO=<usuario>` arranca la aplicación en un puerto aleatorio, emite una contraseña temporal para un administrador o superadministrador (si no existe, crea un administrador del negocio principal o, si es el nombre configurado en `SEED_SUPERADMIN_USERNAME` y no hay ninguno, el superadministrador), la imprime solo en la consola, la audita y termina con código 0 (2 si el usuario es del personal). No hay credenciales maestras ni accesos del proveedor.
+- **Superadministrador:** se crea al arrancar con `SEED_SUPERADMIN_USERNAME` (por defecto `superadmin`) y `SEED_SUPERADMIN_PASSWORD`; en `dev` sin contraseña se genera una y se muestra una vez en el registro. Debe cambiarla en su primer ingreso. Sus acciones se guardan en `registro_plataforma`.
 - **Cabeceras:** CSP (`default-src 'self'`, `frame-ancestors 'self'`, `object-src 'none'`), `X-Frame-Options`, `Referrer-Policy: same-origin`, `Permissions-Policy`, cookie de sesión `HttpOnly` y `SameSite=Lax` (`Secure` en `prod`), sesión solo por cookie y errores sin trazas.
 
 ## Reportes: definiciones
@@ -126,7 +179,7 @@ El esquema lo mantiene Hibernate (`spring.jpa.hibernate.ddl-auto=update`): las c
 ./mvnw test     # .\mvnw.cmd test en Windows
 ```
 
-Usan H2 en memoria. Destacan:
+Usan H2 en memoria y se ejecutan dentro del negocio principal (`NegocioPrincipalExtension`, registrada automáticamente). Destacan:
 
 | Clase | Cubre |
 | --- | --- |
@@ -139,6 +192,9 @@ Usan H2 en memoria. Destacan:
 | `AdminVistasTests`, `CatalogoVistaTests` | Renderizado y acceso a las páginas. |
 | `TemaVisualTests` | Contraste de los tokens en claro y oscuro, variables CSS definidas y ausencia de colores literales. |
 | `ConfiguracionNegocioTests` | Configuración, logo y variantes de color de marca. |
+| `AislamientoHibernateTests` | Que `@TenantId` filtre consultas, `findById` y actualizaciones masivas entre negocios. |
+| `MultiempresaTests` | Aislamiento por la API, superadministrador, alta de negocios, módulos por plan, límites sugeridos, suspensión, pedidos desde la carta, división de cuenta, llamados con confirmación, temas WebSocket por negocio y qué muestra cada página según el plan. |
+| `CartaQrTests`, `PwaTests` | Carta pública, llamados, Wi-Fi, QR y app instalable. |
 
 Antes de entregar un cambio: compilar, ejecutar `./mvnw test` y probar manualmente en el navegador en claro y oscuro, en computadora y en celular.
 

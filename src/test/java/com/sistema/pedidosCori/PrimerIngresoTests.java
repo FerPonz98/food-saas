@@ -182,6 +182,7 @@ class PrimerIngresoTests {
     void serverRecoveryIssuesTemporaryPasswordOnlyForAdmins() throws Exception {
         String username = "duenio." + UUID.randomUUID().toString().substring(0, 6);
         usuarioDao.save(Usuario.builder().username(username).nombreCompleto("Dueño").rol(Rol.ADMIN)
+            .negocioId(NegocioPrincipalExtension.PRINCIPAL)
             .password(passwordEncoder.encode("Olvidada-2026")).activo(false).debeCambiarPassword(false).build());
         ReflectionTestUtils.setField(recuperacion, "usuarioSolicitado", username);
         try {

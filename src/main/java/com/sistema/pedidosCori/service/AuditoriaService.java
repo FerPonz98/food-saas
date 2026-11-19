@@ -5,20 +5,20 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import com.sistema.pedidosCori.models.dao.IRegistroAuditoriaDao;
+import com.sistema.pedidosCori.models.dao.IRegistroPlataformaDao;
 import com.sistema.pedidosCori.models.entity.AccionAuditoria;
 import com.sistema.pedidosCori.models.entity.RegistroAuditoria;
+import com.sistema.pedidosCori.models.entity.RegistroPlataforma;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,12 +28,29 @@ public class AuditoriaService {
     public static final int TAMANO_MAXIMO = 100;
 
     private final IRegistroAuditoriaDao dao;
-    private final TransactionTemplate transaccionPropia;
+    private final IRegistroPlataformaDao plataforma;
+    private final EjecutorNegocio ejecutor;
 
-    public AuditoriaService(IRegistroAuditoriaDao dao, PlatformTransactionManager transacciones) {
+    public AuditoriaService(IRegistroAuditoriaDao dao, IRegistroPlataformaDao plataforma, EjecutorNegocio ejecutor) {
         this.dao = dao;
-        this.transaccionPropia = new TransactionTemplate(transacciones);
-        this.transaccionPropia.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.plataforma = plataforma;
+        this.ejecutor = ejecutor;
+    }
+
+    public void registrarPlataforma(String accion, Long negocioId, String detalle) {
+        RegistroPlataforma r = new RegistroPlataforma();
+        r.setFecha(LocalDateTime.now());
+        r.setUsuario(recortar(UsuarioActual.nombre().orElse("servidor"), RegistroAuditoria.MAX_USUARIO));
+        r.setAccion(recortar(accion, RegistroAuditoria.MAX_ACCION));
+        r.setNegocioId(negocioId);
+        r.setDetalle(recortar(detalle, RegistroAuditoria.MAX_DETALLE));
+        TrasConfirmar.ejecutar(() -> {
+            try {
+                ejecutor.en(NegocioActual.RAIZ, () -> plataforma.save(r));
+            } catch (RuntimeException e) {
+                log.warn("No se pudo registrar la acción de plataforma {}: {}", accion, e.getMessage());
+            }
+        });
     }
 
     public void registrar(AccionAuditoria accion, String entidad, Object entidadId, String detalle) {
@@ -61,12 +78,22 @@ public class AuditoriaService {
             log.warn("No se pudo preparar la auditoría {}: {}", accion, e.getMessage());
             return;
         }
-        TrasConfirmar.ejecutar(() -> persistir(registro));
+        long negocio = NegocioActual.valor();
+        if (negocio == NegocioActual.RAIZ) {
+            registrarPlataforma(registro.getAccion(), null,
+                (registro.getUsuario() == null ? "" : registro.getUsuario() + " · ") + Objects.toString(registro.getDetalle(), ""));
+            return;
+        }
+        if (negocio <= 0) {
+            log.info("Auditoría {} sin negocio asociado: {}", registro.getAccion(), registro.getDetalle());
+            return;
+        }
+        TrasConfirmar.ejecutar(() -> persistir(negocio, registro));
     }
 
-    private void persistir(RegistroAuditoria registro) {
+    private void persistir(long negocio, RegistroAuditoria registro) {
         try {
-            transaccionPropia.executeWithoutResult(estado -> dao.save(registro));
+            ejecutor.en(negocio, () -> dao.save(registro));
         } catch (RuntimeException e) {
             log.warn("No se pudo registrar la auditoría {}: {}", registro.getAccion(), e.getMessage());
         }

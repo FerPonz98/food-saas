@@ -37,7 +37,7 @@
               </div>
               <div class="admin-field">
                 <label for="eslogan">Frase corta (opcional)</label>
-                <input class="field" id="eslogan" name="eslogan" maxlength="240" placeholder="Ej.: Comida casera desde 1998" th:value="${negocio.eslogan}">
+                <input class="field" id="eslogan" th:disabled="${!modulos.contains('APARIENCIA_AVANZADA')}" name="eslogan" maxlength="240" placeholder="Ej.: Comida casera desde 1998" th:value="${negocio.eslogan}">
                 <p class="admin-help">Aparece al pie de la imagen del menú.</p>
               </div>
             </div>
@@ -47,6 +47,7 @@
         <section class="admin-card" aria-labelledby="titulo-colores">
           <div class="admin-card-head">
             <h2 id="titulo-colores">Colores</h2>
+            <p class="admin-help plan-bloqueado" th:unless="${modulos.contains('APARIENCIA_AVANZADA')}">🔒 Los colores y el eslogan se personalizan desde el plan Pro. <a th:href="@{/admin/plan(modulo='APARIENCIA_AVANZADA')}">Ver mi plan</a></p>
             <p>Toca un color para cambiarlo. A la derecha ves cómo queda.</p>
           </div>
           <div class="admin-card-body">
@@ -54,7 +55,7 @@
               <div class="admin-field apariencia-color">
                 <label for="colorPrimario">Principal</label>
                 <div class="apariencia-color-fila">
-                  <input id="colorPrimario" name="colorPrimario" type="color" th:value="${negocio.colorPrimario}">
+                  <input id="colorPrimario" th:disabled="${!modulos.contains('APARIENCIA_AVANZADA')}" name="colorPrimario" type="color" th:value="${negocio.colorPrimario}">
                   <code id="codigo-colorPrimario"></code>
                 </div>
                 <p class="admin-help">Barra superior y botones principales.</p>
@@ -62,7 +63,7 @@
               <div class="admin-field apariencia-color">
                 <label for="colorSecundario">Secundario</label>
                 <div class="apariencia-color-fila">
-                  <input id="colorSecundario" name="colorSecundario" type="color" th:value="${negocio.colorSecundario}">
+                  <input id="colorSecundario" th:disabled="${!modulos.contains('APARIENCIA_AVANZADA')}" name="colorSecundario" type="color" th:value="${negocio.colorSecundario}">
                   <code id="codigo-colorSecundario"></code>
                 </div>
                 <p class="admin-help">Etiquetas y detalles.</p>
@@ -70,7 +71,7 @@
               <div class="admin-field apariencia-color">
                 <label for="colorAcento">Resaltado</label>
                 <div class="apariencia-color-fila">
-                  <input id="colorAcento" name="colorAcento" type="color" th:value="${negocio.colorAcento}">
+                  <input id="colorAcento" th:disabled="${!modulos.contains('APARIENCIA_AVANZADA')}" name="colorAcento" type="color" th:value="${negocio.colorAcento}">
                   <code id="codigo-colorAcento"></code>
                 </div>
                 <p class="admin-help">Botones de acción, como «Cobrar».</p>

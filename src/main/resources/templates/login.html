@@ -18,6 +18,7 @@
         <div class="msg message-error" role="alert" th:if="${param.error}">Usuario o contraseña incorrectos</div>
         <div class="msg message-error" role="alert" th:if="${param.blocked}" th:text="|Demasiados intentos. Intenta nuevamente en ${param.blocked[0]} minutos|"></div>
         <div class="msg message-success" role="status" th:if="${param.logout}">Sesión cerrada correctamente</div>
+        <div class="msg message-error" role="alert" th:if="${param.suspendido}">La suscripción de este negocio está suspendida. Comunícate con el administrador del negocio o con soporte.</div>
         <div class="msg message-error" role="alert" th:if="${param.expirado}">Tu sesión se cerró porque tu cuenta o tu contraseña cambiaron. Vuelve a ingresar.</div>
 
         <label for="username">Usuario</label>

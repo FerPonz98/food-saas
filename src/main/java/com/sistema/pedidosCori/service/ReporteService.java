@@ -23,11 +23,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sistema.pedidosCori.models.dao.ICategoriaDao;
+import com.sistema.pedidosCori.models.dao.IPagoParcialDao;
 import com.sistema.pedidosCori.models.dao.IPedidoDao;
 import com.sistema.pedidosCori.models.dao.IUsuarioDao;
 import com.sistema.pedidosCori.models.dto.ConfiguracionNegocioVista;
 import com.sistema.pedidosCori.models.entity.Categoria;
 import com.sistema.pedidosCori.models.entity.DetallePedido;
+import com.sistema.pedidosCori.models.entity.Modulo;
+import com.sistema.pedidosCori.models.entity.PagoParcial;
 import com.sistema.pedidosCori.models.entity.Pedido;
 import com.sistema.pedidosCori.models.entity.Usuario;
 
@@ -51,6 +54,8 @@ public class ReporteService {
     private final IUsuarioDao usuarioDao;
     private final ICategoriaDao categoriaDao;
     private final ConfiguracionNegocioService configuracion;
+    private final IPagoParcialDao pagoParcialDao;
+    private final ModuloService modulos;
 
     public record Rango(String desde, String hasta, int dias, String agrupar) { }
     public record RangoAnterior(String desde, String hasta) { }
@@ -131,10 +136,31 @@ public class ReporteService {
             productos(cobrados, categorias),
             categoriasReporte(cobrados, categorias),
             empleados(cobrados, registrados, nombres),
-            metodosPago(cobrados),
+            metodosPago(cobrados, pagosParciales(cobrados)),
             horas(cobrados),
             diasSemana(cobrados),
             modalidades(cobrados));
+    }
+
+    @Transactional(readOnly = true)
+    public Reporte generarSegunPlan(LocalDate desde, LocalDate hasta, String agrupar) {
+        boolean completos = modulos.tiene(Modulo.REPORTES_COMPLETOS);
+        boolean avanzados = modulos.tiene(Modulo.REPORTES_AVANZADOS);
+        if (!completos) {
+            LocalDate hoy = LocalDate.now();
+            boolean pideOtroPeriodo = (desde != null && !desde.equals(hoy)) || (hasta != null && !hasta.equals(hoy));
+            if (pideOtroPeriodo) throw new ModuloService.ModuloNoIncluido(Modulo.REPORTES_COMPLETOS);
+            desde = hoy;
+            hasta = hoy;
+        }
+        Reporte r = generar(desde, hasta, agrupar);
+        return new Reporte(r.rango(), avanzados ? r.anterior() : null,
+            avanzados ? r.resumen() : new Resumen(r.resumen().ventas(), r.resumen().pedidosCobrados(),
+                r.resumen().ticketPromedio(), r.resumen().unidades(), r.resumen().pedidosRegistrados(),
+                r.resumen().porCobrarPedidos(), r.resumen().porCobrarMonto(), null, null),
+            r.serie(), completos ? r.productos() : List.of(), completos ? r.categorias() : List.of(),
+            completos ? r.empleados() : List.of(), r.metodosPago(), avanzados ? r.horas() : List.of(),
+            avanzados ? r.diasSemana() : List.of(), r.modalidades());
     }
 
     @Transactional(readOnly = true)
@@ -335,8 +361,27 @@ public class ReporteService {
             .toList();
     }
 
-    private static List<MetodoPagoReporte> metodosPago(List<Pedido> cobrados) {
-        Map<String, Acumulado> acumulados = agrupar(cobrados, ReporteService::metodo);
+    private Map<Long, List<PagoParcial>> pagosParciales(List<Pedido> cobrados) {
+        List<Long> divididos = cobrados.stream().filter(p -> p.getAbonado() != null && p.getAbonado() > 0)
+            .map(Pedido::getId).toList();
+        if (divididos.isEmpty()) return Map.of();
+        return pagoParcialDao.findByPedidoIdIn(divididos).stream().collect(Collectors.groupingBy(PagoParcial::getPedidoId));
+    }
+
+    private static List<MetodoPagoReporte> metodosPago(List<Pedido> cobrados, Map<Long, List<PagoParcial>> pagos) {
+        Map<String, Acumulado> acumulados = agrupar(cobrados.stream().filter(p -> !pagos.containsKey(p.getId())).toList(),
+            ReporteService::metodo);
+        pagos.values().forEach(lista -> {
+            Map<String, BigDecimal> porMetodo = new LinkedHashMap<>();
+            for (PagoParcial pago : lista)
+                porMetodo.merge(vacio(pago.getMetodoPago()) ? SIN_METODO : pago.getMetodoPago().trim(),
+                    BigDecimal.valueOf(pago.getMonto() == null ? 0 : pago.getMonto()), BigDecimal::add);
+            porMetodo.forEach((metodo, monto) -> {
+                Acumulado a = acumulados.computeIfAbsent(metodo, k -> new Acumulado());
+                a.pedidos++;
+                a.monto = a.monto.add(monto);
+            });
+        });
         return acumulados.entrySet().stream()
             .map(e -> new MetodoPagoReporte(e.getKey(), e.getValue().pedidos, dinero(e.getValue().monto)))
             .sorted(Comparator.comparingDouble(MetodoPagoReporte::monto).reversed()
@@ -393,7 +438,7 @@ public class ReporteService {
 
     private Map<String, String> nombresUsuarios() {
         Map<String, String> mapa = new HashMap<>();
-        for (Usuario u : usuarioDao.findAll())
+        for (Usuario u : usuarioDao.findByNegocioId(NegocioActual.requerido()))
             mapa.put(u.getUsername(), vacio(u.getNombreCompleto()) ? u.getUsername() : u.getNombreCompleto().trim());
         return mapa;
     }

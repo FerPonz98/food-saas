@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="barra(activa)">
+  <a class="admin-skip" href="#contenido">Saltar al contenido</a>
+  <header class="admin-header">
+    <button type="button" class="admin-menu-btn flat" aria-controls="admin-nav" aria-expanded="false" data-admin-abrir>
+      <span class="admin-menu-ico" aria-hidden="true">☰</span>
+      <span>Menú</span>
+    </button>
+    <a class="admin-brand" th:href="@{/superadmin}" aria-label="Ir al panel de la plataforma">
+      <img th:src="${negocio.logoUrl}" alt="">
+      <span class="admin-brand-nombre">Plataforma</span>
+    </a>
+    <span class="admin-header-titulo" id="admin-seccion-actual"></span>
+    <div class="admin-header-sesion">
+      <div th:replace="~{fragments/sesion :: barra}"></div>
+    </div>
+  </header>
+  <div class="admin-nav-fondo" data-admin-cerrar hidden></div>
+  <nav class="admin-nav" id="admin-nav" aria-label="Plataforma">
+    <div class="admin-nav-top">
+      <span class="admin-nav-titulo">Plataforma</span>
+      <button type="button" class="admin-nav-cerrar flat" data-admin-cerrar aria-label="Cerrar menú">✕</button>
+    </div>
+    <div class="admin-nav-grupo">
+      <p class="admin-nav-grupo-titulo" id="sa-grupo">Superadministración</p>
+      <ul aria-labelledby="sa-grupo">
+        <li>
+          <a class="admin-nav-item" th:href="@{/superadmin}" th:attr="aria-current=${activa == 'negocios' ? 'page' : null}">
+            <span class="admin-nav-icono" aria-hidden="true">🏪</span>
+            <span class="admin-nav-texto"><span class="admin-nav-label">Negocios</span><span class="admin-nav-hint">Suscripciones, módulos y accesos</span></span>
+          </a>
+        </li>
+        <li>
+          <a class="admin-nav-item" th:href="@{/superadmin/planes}" th:attr="aria-current=${activa == 'planes' ? 'page' : null}">
+            <span class="admin-nav-icono" aria-hidden="true">⭐</span>
+            <span class="admin-nav-texto"><span class="admin-nav-label">Planes</span><span class="admin-nav-hint">Precios, límites y funciones</span></span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</th:block>
+</body>
+</html>

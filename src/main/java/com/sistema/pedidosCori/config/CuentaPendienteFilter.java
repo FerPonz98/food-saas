@@ -15,8 +15,8 @@ import jakarta.servlet.http.HttpSession;
 
 public class CuentaPendienteFilter extends OncePerRequestFilter {
     private static final List<String> PERMITIDAS = List.of("/cuenta", "/terminos", "/logout", "/login", "/error",
-        "/favicon.ico", "/branding/logo");
-    private static final List<String> PREFIJOS_PERMITIDOS = List.of("/css/", "/js/", "/img/");
+        "/favicon.ico", "/branding/logo", "/manifest.webmanifest", "/sw.js", "/suspendido");
+    private static final List<String> PREFIJOS_PERMITIDOS = List.of("/css/", "/js/", "/img/", "/pwa/", "/n/");
 
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)

@@ -1,0 +1,64 @@
+.plan-aviso-modulo {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--status-info-border);
+  border-radius: var(--radius-md);
+  background: var(--status-info-soft);
+  color: var(--status-info-text);
+  font-weight: 700;
+}
+.plan-resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--space-3); margin: 0; }
+.plan-resumen div { display: grid; gap: 2px; }
+.plan-resumen dt { color: var(--text-muted); font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.plan-resumen dd { margin: 0; font-size: 1.05rem; font-weight: 700; }
+
+.plan-uso { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4); }
+.plan-medidor { display: grid; gap: var(--space-2); }
+.plan-medidor-cab { display: flex; justify-content: space-between; gap: var(--space-2); font-size: .9rem; }
+.plan-medidor-titulo { font-weight: 700; }
+.plan-medidor-valor { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.plan-barra { height: 10px; border-radius: 999px; background: var(--surface-sunken); overflow: hidden; }
+.plan-barra-relleno { display: block; height: 100%; border-radius: inherit; background: var(--brand-primary); }
+.plan-barra-libre .plan-barra-relleno { background: var(--status-success-border); }
+.plan-barra-excedida .plan-barra-relleno { background: var(--status-warning); }
+.plan-avisos { display: grid; gap: var(--space-2); margin: var(--space-4) 0 0; padding: 0; list-style: none; }
+.plan-avisos[hidden] { display: none; }
+.plan-aviso {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--status-warning-border);
+  background: var(--status-warning-soft);
+  color: var(--status-warning-text);
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.plan-modulos { display: grid; gap: var(--space-5); }
+.plan-grupo-titulo { margin: 0 0 var(--space-2); font-size: .8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+.plan-lista { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.plan-modulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-main);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+}
+.plan-modulo-texto { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.plan-marca {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-weight: 800;
+}
+.plan-incluido .plan-marca { background: var(--status-success-soft); color: var(--status-success-text); }
+.plan-no-incluido .plan-marca { background: var(--surface-sunken); color: var(--text-muted); }
+.plan-no-incluido .plan-modulo-texto strong { color: var(--text-muted); }
+.plan-resaltado { border-color: var(--status-info-border); box-shadow: 0 0 0 3px var(--status-info-soft); }
+@media (max-width: 480px) {
+  .plan-modulo { flex-wrap: wrap; }
+  .plan-modulo .badge { margin-left: 44px; }
+}

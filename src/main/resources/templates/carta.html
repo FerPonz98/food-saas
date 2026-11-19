@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title th:text="${mesa != null} ? |Carta — ${negocio.puntoAtencionSingular} ${mesa} — ${negocio.nombreNegocio}| : |Carta — ${negocio.nombreNegocio}|">Carta</title>
+    <meta name="description" th:content="|Carta de ${negocio.nombreNegocio}|">
+    <th:block th:replace="~{fragments/head :: branding}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/catalogo.css}">
+    <link rel="stylesheet" th:href="@{/css/carta.css}">
+</head>
+<body class="carta-pagina"
+      th:with="llamados=${mesa != null and modulos.contains('LLAMADOS')}, pedidos=${mesa != null and modulos.contains('PEDIDOS_QR')}"
+      th:classappend="${llamados or pedidos} ? 'carta-con-barra'"
+      th:attr="data-mesa=${mesa}, data-wifi=${wifiDisponible}, data-slug=${negocio.slug}, data-llamados=${llamados}, data-pedidos=${pedidos}">
+    <main id="carta" aria-label="Carta"></main>
+
+    <footer class="carta-pie" th:unless="${modulos.contains('CARTA_SIN_MARCA')}">Carta digital con Gestión Comercial</footer>
+
+    <th:block th:if="${mesa != null}">
+        <div class="carta-estado" id="carta-estado" role="status" aria-live="polite" hidden></div>
+
+        <nav class="carta-barra" aria-label="Acciones de la mesa" th:if="${llamados or pedidos or wifiDisponible}">
+            <span class="carta-mesa" th:text="|${negocio.puntoAtencionSingular} ${mesa}|">Mesa 1</span>
+            <div class="carta-acciones">
+                <button type="button" class="carta-accion flat" id="btn-wifi" th:if="${wifiDisponible}">
+                    <span class="carta-accion-icono" aria-hidden="true">📶</span>
+                    <span>Wi-Fi</span>
+                </button>
+                <button type="button" class="carta-accion flat" id="btn-llamar" th:if="${llamados}">
+                    <span class="carta-accion-icono" aria-hidden="true">🔔</span>
+                    <span th:text="|Llamar ${#strings.toLowerCase(negocio.etiquetaRolMesero)}|">Llamar mesero</span>
+                </button>
+                <button type="button" class="carta-accion flat" id="btn-cuenta" th:if="${llamados}">
+                    <span class="carta-accion-icono" aria-hidden="true">🧾</span>
+                    <span>Pedir la cuenta</span>
+                </button>
+                <button type="button" class="carta-accion carta-accion-principal flat" id="btn-carrito" th:if="${pedidos}" hidden>
+                    <span class="carta-accion-icono" aria-hidden="true">🛒</span>
+                    <span>Mi pedido <span id="carrito-cantidad">0</span></span>
+                </button>
+            </div>
+        </nav>
+
+        <dialog class="carta-dialogo" id="dlg-llamar" aria-labelledby="dlg-llamar-titulo" th:if="${llamados}">
+            <h2 id="dlg-llamar-titulo" th:text="|¿Llamar al ${#strings.toLowerCase(negocio.etiquetaRolMesero)}?|">¿Llamar al mesero?</h2>
+            <p th:text="|Le avisaremos que lo necesitan en la ${#strings.toLowerCase(negocio.puntoAtencionSingular)} ${mesa}.|">Le avisaremos.</p>
+            <div class="carta-dialogo-botones">
+                <button type="button" class="button-secondary" data-cerrar>Cancelar</button>
+                <button type="button" class="button-primary" id="confirmar-llamar">Sí, llamar</button>
+            </div>
+        </dialog>
+
+        <dialog class="carta-dialogo" id="dlg-cuenta" aria-labelledby="dlg-cuenta-titulo" th:if="${llamados}">
+            <h2 id="dlg-cuenta-titulo">Pedir la cuenta</h2>
+            <p>¿Cómo vas a pagar?</p>
+            <div class="carta-pagos">
+                <button type="button" class="carta-pago flat" data-pago="EFECTIVO"><span aria-hidden="true">💵</span>Efectivo</button>
+                <button type="button" class="carta-pago flat" data-pago="TARJETA"><span aria-hidden="true">💳</span>Tarjeta</button>
+                <button type="button" class="carta-pago flat" data-pago="QR"><span aria-hidden="true">📱</span>Pago QR</button>
+            </div>
+            <div class="carta-dialogo-botones">
+                <button type="button" class="button-secondary" data-cerrar>Cancelar</button>
+            </div>
+        </dialog>
+
+        <dialog class="carta-dialogo" id="dlg-agregar" aria-labelledby="dlg-agregar-titulo" th:if="${pedidos}">
+            <h2 id="dlg-agregar-titulo">Agregar</h2>
+            <fieldset class="carta-tamanos" id="agregar-tamanos">
+                <legend>Elige el tamaño</legend>
+                <div id="agregar-opciones"></div>
+            </fieldset>
+            <div class="carta-cantidad">
+                <span id="agregar-cantidad-etiqueta">Cantidad</span>
+                <div class="carta-stepper" role="group" aria-labelledby="agregar-cantidad-etiqueta">
+                    <button type="button" class="button-secondary" id="agregar-menos" aria-label="Uno menos">−</button>
+                    <output id="agregar-cantidad" aria-live="polite">1</output>
+                    <button type="button" class="button-secondary" id="agregar-mas" aria-label="Uno más">+</button>
+                </div>
+            </div>
+            <label class="carta-etiqueta" for="agregar-nota">Nota para la cocina (opcional)</label>
+            <input class="field" id="agregar-nota" maxlength="120" placeholder="Ej.: sin cebolla">
+            <div class="carta-dialogo-botones">
+                <button type="button" class="button-secondary" data-cerrar>Cancelar</button>
+                <button type="button" class="button-primary" id="agregar-confirmar">Agregar</button>
+            </div>
+        </dialog>
+
+        <dialog class="carta-dialogo carta-dialogo-carrito" id="dlg-carrito" aria-labelledby="dlg-carrito-titulo" th:if="${pedidos}">
+            <h2 id="dlg-carrito-titulo">Tu pedido</h2>
+            <ul class="carta-carrito" id="carrito-lista"></ul>
+            <p class="carta-carrito-total">Total estimado: <strong id="carrito-total">0</strong></p>
+            <label class="carta-etiqueta" for="carrito-nombre">Tu nombre (opcional)</label>
+            <input class="field" id="carrito-nombre" maxlength="60" autocomplete="given-name">
+            <label class="carta-etiqueta" for="carrito-nota">Nota para el pedido (opcional)</label>
+            <input class="field" id="carrito-nota" maxlength="200">
+            <p class="carta-nota" th:text="|El ${#strings.toLowerCase(negocio.etiquetaRolMesero)} revisará tu pedido antes de enviarlo a la cocina.|">El mesero revisará tu pedido.</p>
+            <div class="carta-dialogo-botones">
+                <button type="button" class="button-secondary" data-cerrar>Seguir viendo</button>
+                <button type="button" class="button-primary" id="carrito-enviar">Enviar pedido</button>
+            </div>
+        </dialog>
+
+        <dialog class="carta-dialogo" id="dlg-wifi" aria-labelledby="dlg-wifi-titulo" th:if="${wifiDisponible}">
+            <h2 id="dlg-wifi-titulo">Wi-Fi gratis</h2>
+            <dl class="carta-wifi">
+                <div>
+                    <dt>Red</dt>
+                    <dd id="wifi-nombre">…</dd>
+                </div>
+                <div id="wifi-clave-fila">
+                    <dt>Clave</dt>
+                    <dd><span id="wifi-clave">…</span>
+                        <button type="button" class="button-secondary carta-copiar" id="wifi-copiar">Copiar</button></dd>
+                </div>
+            </dl>
+            <p class="carta-nota">También puedes escanear el QR de Wi-Fi del cartel de tu mesa para conectarte sin escribir la clave.</p>
+            <div class="carta-dialogo-botones">
+                <button type="button" class="button-primary" data-cerrar>Listo</button>
+            </div>
+        </dialog>
+    </th:block>
+
+    <div class="carta-aviso" id="carta-aviso" role="alert" hidden></div>
+
+    <script th:src="@{/js/catalogo.js}" src="/js/catalogo.js"></script>
+    <script th:src="@{/js/carta.js}" src="/js/carta.js"></script>
+</body>
+</html>

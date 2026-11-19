@@ -9,13 +9,13 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.sistema.pedidosCori.models.dao.IUsuarioDao;
 import com.sistema.pedidosCori.models.entity.AccionAuditoria;
 import com.sistema.pedidosCori.models.entity.Rol;
 import com.sistema.pedidosCori.models.entity.Usuario;
 import com.sistema.pedidosCori.service.AuditoriaService;
+import com.sistema.pedidosCori.service.NegocioActual;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,10 +30,13 @@ public class RecuperacionAcceso implements CommandLineRunner {
     private final IUsuarioDao usuarioDao;
     private final PasswordEncoder passwordEncoder;
     private final AuditoriaService auditoria;
+    private final PlataformaInicial plataforma;
     private final SecureRandom random = new SecureRandom();
 
     @Value("${app.recuperar-acceso:}")
     private String usuarioSolicitado;
+    @Value("${app.seed.superadmin-username:superadmin}")
+    private String superadminUsername;
 
     private int codigoSalida;
 
@@ -45,29 +48,32 @@ public class RecuperacionAcceso implements CommandLineRunner {
     public int codigoSalida() { return codigoSalida; }
 
     @Override
-    @Transactional
     public void run(String... args) {
         if (usuarioSolicitado == null || usuarioSolicitado.isBlank()) return;
         codigoSalida = 0;
         String username = usuarioSolicitado.trim().toLowerCase(Locale.ROOT);
         Usuario usuario = usuarioDao.findByUsername(username).orElse(null);
-        if (usuario != null && usuario.getRol() != Rol.ADMIN) {
+        if (usuario != null && usuario.getRol() != Rol.ADMIN && usuario.getRol() != Rol.SUPERADMIN) {
             codigoSalida = 2;
             imprimir("No se recuperó el acceso", "El usuario '" + username + "' no es administrador.",
                 "Las cuentas del personal se restablecen desde Administración → Usuarios.");
             return;
         }
         String temporal = generarTemporal();
-        if (usuario == null) {
-            usuario = Usuario.builder().username(username).nombreCompleto("Administrador").rol(Rol.ADMIN).build();
+        if (usuario == null && username.equals(superadminUsername) && usuarioDao.countByRolAndActivoTrue(Rol.SUPERADMIN) == 0) {
+            usuario = Usuario.builder().username(username).nombreCompleto("Superadministrador").rol(Rol.SUPERADMIN).build();
+        } else if (usuario == null) {
+            usuario = Usuario.builder().username(username).nombreCompleto("Administrador").rol(Rol.ADMIN)
+                .negocioId(plataforma.negocioPrincipal()).build();
         }
         usuario.setPassword(passwordEncoder.encode(temporal));
         usuario.setActivo(true);
         usuario.setDebeCambiarPassword(true);
         usuario.setPasswordActualizadaEn(LocalDateTime.now());
         Usuario guardado = usuarioDao.save(usuario);
-        auditoria.registrarComo("servidor", AccionAuditoria.ACCESO_RECUPERADO, "Usuario", guardado.getId(),
-            () -> "Contraseña temporal emitida para " + username + " desde la consola del servidor");
+        long negocio = guardado.getNegocioId() == null ? NegocioActual.RAIZ : guardado.getNegocioId();
+        NegocioActual.ejecutarComo(negocio, () -> auditoria.registrarComo("servidor", AccionAuditoria.ACCESO_RECUPERADO,
+            "Usuario", guardado.getId(), () -> "Contraseña temporal emitida para " + username + " desde la consola del servidor"));
         imprimir("Acceso recuperado", "Usuario: " + username, "Contraseña temporal: " + temporal,
             "Al ingresar, el sistema pedirá elegir una contraseña nueva.",
             "Esta contraseña no se guarda en ningún registro: anótala ahora.");

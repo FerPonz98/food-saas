@@ -1,5 +1,8 @@
 package com.sistema.pedidosCori.models.entity;
 
+import org.hibernate.annotations.TenantId;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -39,6 +42,11 @@ public class Pedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @TenantId
+    @JsonIgnore
+    @Column(name = "negocio_id", nullable = false, updatable = false)
+    private Long negocioId;
+
     @Column(name = "numero_mesa")
     private Integer numeroMesa;
 
@@ -66,6 +74,10 @@ public class Pedido {
 
     @Column(nullable = false)
     private Double total = 0.0;
+
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "double precision default 0")
+    private Double abonado = 0.0;
 
     @Builder.Default
     @Column(name = "ultimo_detalle_preparado_id", nullable = false, columnDefinition = "bigint default 0")

@@ -114,7 +114,8 @@ class ReportesAvanzadosTests {
 
     private void usuario(String username, String nombre, Rol rol) {
         if (usuarioDao.existsByUsername(username)) return;
-        usuarioDao.save(Usuario.builder().username(username).nombreCompleto(nombre).password("{noop}x").rol(rol).build());
+        usuarioDao.save(Usuario.builder().username(username).nombreCompleto(nombre).password("{noop}x").rol(rol)
+            .negocioId(NegocioPrincipalExtension.PRINCIPAL).build());
     }
 
     private Plato plato(String nombre, String categoria, double precio) {

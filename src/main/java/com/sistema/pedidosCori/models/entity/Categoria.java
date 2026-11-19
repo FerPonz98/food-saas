@@ -1,18 +1,22 @@
 package com.sistema.pedidosCori.models.entity;
 
+import org.hibernate.annotations.TenantId;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "categoria")
+@Table(name = "categoria", uniqueConstraints = @UniqueConstraint(name = "uk_categoria_negocio_codigo", columnNames = {"negocio_id", "codigo"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,7 +30,12 @@ public class Categoria {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, updatable = false, length = MAX_CODIGO)
+    @TenantId
+    @JsonIgnore
+    @Column(name = "negocio_id", nullable = false, updatable = false)
+    private Long negocioId;
+
+    @Column(nullable = false, updatable = false, length = MAX_CODIGO)
     private String codigo;
 
     @Column(nullable = false, length = MAX_NOMBRE)

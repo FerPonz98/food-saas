@@ -6,12 +6,17 @@ import com.sistema.pedidosCori.models.entity.RegistroAuditoria;
 import com.sistema.pedidosCori.service.AuditoriaService;
 import com.sistema.pedidosCori.service.CuentaService;
 import com.sistema.pedidosCori.service.LoginAttemptService;
+import com.sistema.pedidosCori.service.ModuloService;
+import com.sistema.pedidosCori.service.NegocioActual;
+import com.sistema.pedidosCori.service.UsuarioSesion;
+import com.sistema.pedidosCori.models.entity.Usuario;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -56,11 +61,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginAttemptService attempts,
             SessionRegistry sessionRegistry, AuditoriaService auditoria, IUsuarioDao usuarioDao,
-            CuentaService cuentaService) throws Exception {
+            CuentaService cuentaService, ModuloService modulos) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/terminos", "/error", "/favicon.ico", "/css/**", "/js/**", "/img/**", "/branding/logo").permitAll()
-                .requestMatchers("/", "/logout", "/cuenta", "/ws", "/ws/**").authenticated()
+                .requestMatchers("/login", "/terminos", "/error", "/favicon.ico", "/css/**", "/js/**", "/img/**", "/branding/logo",
+                    "/manifest.webmanifest", "/sw.js", "/pwa/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/n/*/login", "/n/*/logo", "/n/*/manifest.webmanifest", "/n/*/pwa/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/carta", "/mesa/*", "/n/*/carta", "/n/*/mesa/*",
+                    "/api/publico/*/carta", "/api/publico/*/platos/*/imagen", "/api/publico/*/mesa/*/wifi",
+                    "/api/publico/*/mesa/*/llamados", "/api/publico/*/mesa/*/pedidos", "/api/publico/*/mesa/*/pedidos/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/publico/*/mesa/*/llamados", "/api/publico/*/mesa/*/pedidos").permitAll()
+                .requestMatchers("/superadmin", "/superadmin/**", "/api/superadmin/**").hasRole("SUPERADMIN")
+                .requestMatchers("/api/llamados", "/api/llamados/**", "/api/solicitudes", "/api/solicitudes/**").hasAnyRole("ADMIN", "MESERO")
+                .requestMatchers("/", "/logout", "/cuenta", "/suspendido", "/ws", "/ws/**").authenticated()
                 .requestMatchers("/mesero", "/catalogo").hasAnyRole("ADMIN", "MESERO")
                 .requestMatchers("/cocina").hasAnyRole("ADMIN", "COCINA")
                 .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
@@ -71,8 +84,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/platos/**", "/api/presentaciones/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/platos/**", "/api/presentaciones/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/pedidos/*/estado").hasAnyRole("ADMIN", "COCINA", "MESERO")
-                .requestMatchers(HttpMethod.POST, "/api/pedidos", "/api/pedidos/*/detalles").hasAnyRole("ADMIN", "MESERO")
+                .requestMatchers(HttpMethod.POST, "/api/pedidos", "/api/pedidos/*/detalles", "/api/pedidos/*/pagos").hasAnyRole("ADMIN", "MESERO")
                 .requestMatchers(HttpMethod.PUT, "/api/pedidos/*/pagar").hasAnyRole("ADMIN", "MESERO")
+                .requestMatchers(HttpMethod.GET, "/api/pedidos/*/cuenta").hasAnyRole("ADMIN", "MESERO")
                 .requestMatchers(HttpMethod.GET, "/api/platos", "/api/platos/*/presentaciones").hasAnyRole("ADMIN", "MESERO")
                 .requestMatchers(HttpMethod.GET, "/api/mesas/ocupadas").hasAnyRole("ADMIN", "MESERO")
                 .requestMatchers(HttpMethod.GET, "/api/pedidos/cocina").hasAnyRole("ADMIN", "COCINA")
@@ -89,8 +103,12 @@ public class SecurityConfig {
                     } catch (RuntimeException e) {
                         log.warn("No se pudo registrar el último acceso de {}: {}", username, e.getMessage());
                     }
-                    auditoria.registrarComo(username, AccionAuditoria.LOGIN, "Usuario", null,
-                        () -> "Acceso desde " + req.getRemoteAddr());
+                    long negocio = authentication.getPrincipal() instanceof UsuarioSesion sesion
+                        ? (sesion.esSuperadmin() ? NegocioActual.RAIZ : sesion.getNegocioId() == null ? NegocioActual.NINGUNO : sesion.getNegocioId())
+                        : NegocioActual.NINGUNO;
+                    NegocioActual.ejecutarComo(negocio,
+                        () -> auditoria.registrarComo(username, AccionAuditoria.LOGIN, "Usuario", null,
+                            () -> "Acceso desde " + req.getRemoteAddr()));
                     boolean pendiente = cuentaService.pendientes(username).alguno();
                     if (pendiente) req.getSession().setAttribute(CuentaService.SESION_PENDIENTE, Boolean.TRUE);
                     res.sendRedirect(req.getContextPath() + (pendiente ? "/cuenta" : "/"));
@@ -100,9 +118,18 @@ public class SecurityConfig {
                     String intentado = req.getParameter("username");
                     String usuario = intentado == null || intentado.isBlank() ? "(vacío)"
                         : AuditoriaService.recortar(intentado.trim(), RegistroAuditoria.MAX_USUARIO);
-                    auditoria.registrarComo(usuario, AccionAuditoria.LOGIN_FALLIDO, "Usuario", null,
-                        () -> (exception instanceof DisabledException ? "Cuenta desactivada" : "Credenciales incorrectas")
-                            + " · Desde " + req.getRemoteAddr());
+                    Long negocio = intentado == null || intentado.isBlank() ? null
+                        : usuarioDao.findByUsername(intentado.trim().toLowerCase(java.util.Locale.ROOT))
+                            .map(Usuario::getNegocioId).orElse(null);
+                    if (negocio != null)
+                        NegocioActual.ejecutarComo(negocio, () -> auditoria.registrarComo(usuario, AccionAuditoria.LOGIN_FALLIDO,
+                            "Usuario", null, () -> (exception instanceof DisabledException ? "Cuenta desactivada"
+                                : exception instanceof LockedException ? "Suscripción suspendida" : "Credenciales incorrectas")
+                                + " · Desde " + req.getRemoteAddr()));
+                    if (exception instanceof LockedException) {
+                        res.sendRedirect(req.getContextPath() + "/login?suspendido");
+                        return;
+                    }
                     redirectLoginError(req, res, attempts.remainingMinutes(req.getParameter("username"), req.getRemoteAddr()));
                 })
                 .permitAll()
@@ -118,7 +145,7 @@ public class SecurityConfig {
                         apiError(res, HttpStatus.UNAUTHORIZED, "Tu sesión fue cerrada por un administrador", "SESION_EXPIRADA");
                     else res.sendRedirect(req.getContextPath() + "/login?expirado");
                 })))
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/ws/**"))
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/ws/**", "/api/publico/**"))
             .headers(h -> h
                 .frameOptions(f -> f.sameOrigin())
                 .contentSecurityPolicy(csp -> csp.policyDirectives(POLITICA_CONTENIDO))
@@ -136,6 +163,7 @@ public class SecurityConfig {
             );
         http.addFilterBefore(new LoginThrottleFilter(attempts), UsernamePasswordAuthenticationFilter.class);
         http.addFilterAfter(new CuentaPendienteFilter(), AuthorizationFilter.class);
+        http.addFilterAfter(new NegocioFiltro(modulos, usuarioDao), CuentaPendienteFilter.class);
         return http.build();
     }
 

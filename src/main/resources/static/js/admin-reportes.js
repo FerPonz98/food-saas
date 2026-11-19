@@ -8,7 +8,9 @@
     const SVG = 'http://www.w3.org/2000/svg';
     const PERIODOS = ['hoy', 'ayer', 'esta-semana', 'semana-pasada', 'este-mes', 'mes-pasado', 'ultimos-7', 'ultimos-30'];
     const AGRUPACIONES = ['auto', 'dia', 'semana', 'mes'];
-    const DEFECTO = 'esta-semana';
+    const MODULOS = (window.NEGOCIO && window.NEGOCIO.modulos) || [];
+    const COMPLETOS = MODULOS.includes('REPORTES_COMPLETOS');
+    const DEFECTO = COMPLETOS ? 'esta-semana' : 'hoy';
     const COMPARA = {
         hoy: 'vs ayer',
         ayer: 'vs día anterior',
@@ -193,6 +195,7 @@
     function normalizar(datos) {
         const origen = datos || {};
         const agrupar = AGRUPACIONES.includes(origen.agrupar) ? origen.agrupar : 'auto';
+        if (!COMPLETOS) return { periodo: 'hoy', agrupar, ...rangoDe('hoy') };
         if (PERIODOS.includes(origen.periodo)) return { periodo: origen.periodo, agrupar, ...rangoDe(origen.periodo) };
         if (origen.periodo === 'personalizado' && !validarRango(origen.desde, origen.hasta)) {
             return { periodo: 'personalizado', agrupar, desde: origen.desde, hasta: origen.hasta };
@@ -344,19 +347,16 @@
 
     function pintarKpis(datos) {
         const resumen = datos.resumen || {};
+        const comparar = !!resumen.anterior;
         const anterior = resumen.anterior || {};
         const variacion = resumen.variacion || {};
         const sufijo = COMPARA[estado.periodo] || COMPARA.personalizado;
         const tiles = KPIS.map(k => {
             const tile = crear('div', `admin-stat${k.destacado ? ' admin-stat-destacado' : ''}`);
             const formato = k.dinero ? dinero : v => fmtEntero.format(num(v));
-            tile.append(
-                crear('span', 'admin-stat-label', k.etiqueta),
-                crear('strong', 'admin-stat-valor', formato(resumen[k.clave])),
-                chipVariacion(variacion[k.clave], sufijo),
-                crear('span', 'rep-antes', `Antes: ${formato(anterior[k.clave])}`),
-                crear('span', 'admin-stat-hint', k.ayuda)
-            );
+            tile.append(crear('span', 'admin-stat-label', k.etiqueta), crear('strong', 'admin-stat-valor', formato(resumen[k.clave])));
+            if (comparar) tile.append(chipVariacion(variacion[k.clave], sufijo), crear('span', 'rep-antes', `Antes: ${formato(anterior[k.clave])}`));
+            tile.append(crear('span', 'admin-stat-hint', k.ayuda));
             return tile;
         });
         const pendientes = num(resumen.porCobrarPedidos);
@@ -376,7 +376,11 @@
     }
 
     function pintarComparado(datos) {
-        const ant = datos.anterior || {};
+        if (!datos.anterior) {
+            el.comparado.textContent = '';
+            return;
+        }
+        const ant = datos.anterior;
         const texto = textoRango(ant.desde, ant.hasta);
         if (!texto) {
             el.comparado.textContent = '';

@@ -67,7 +67,7 @@ class ConfiguracionNegocioTests {
         ConfiguracionNegocioRequest invalidCount = new ConfiguracionNegocioRequest(normal.getNombreNegocio(), "",
             normal.getColorPrimario(), normal.getColorSecundario(), normal.getColorAcento(), normal.getPuntoAtencionSingular(),
             normal.getPuntoAtencionPlural(), normal.getEtiquetaParaLlevar(), normal.getEtiquetaRolMesero(),
-            normal.getEtiquetaRolCocina(), normal.getSimboloMoneda(), 201);
+            normal.getEtiquetaRolCocina(), normal.getSimboloMoneda(), ConfiguracionNegocioService.MAXIMO_PUNTOS_ATENCION + 1);
         assertThrows(IllegalArgumentException.class, () -> service.actualizar(invalidCount));
     }
 

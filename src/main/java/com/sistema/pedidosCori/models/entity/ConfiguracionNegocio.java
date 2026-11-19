@@ -51,4 +51,8 @@ public class ConfiguracionNegocio {
     private String logoMimeType;
     @Column(nullable = false)
     private Long logoVersion = 1L;
+    @Column(length = 32)
+    private String wifiNombre;
+    @Column(length = 63)
+    private String wifiClave;
 }

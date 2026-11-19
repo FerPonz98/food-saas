@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Negocios — Plataforma</title>
+  <th:block th:replace="~{fragments/head :: branding}"></th:block>
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+  <link rel="stylesheet" th:href="@{/css/superadmin.css}">
+  <script defer th:src="@{/js/security.js}"></script>
+  <script defer th:src="@{/js/admin-shell.js}"></script>
+  <script defer th:src="@{/js/superadmin-negocios.js}"></script>
+</head>
+<body class="admin-shell">
+  <div th:replace="~{fragments/superadmin-layout :: barra('negocios')}"></div>
+  <main class="admin-main" id="contenido" tabindex="-1">
+    <header class="admin-page-head">
+      <div>
+        <h1>Negocios</h1>
+        <p class="admin-page-desc">Cada negocio tiene sus propios datos, usuarios, apariencia y módulos. Desde aquí asignas planes, activas o suspendes suscripciones y das soporte.</p>
+      </div>
+      <div class="admin-page-actions">
+        <button type="button" class="button-primary" id="sa-nuevo">＋ Nuevo negocio</button>
+      </div>
+    </header>
+
+    <section class="admin-grid sa-kpis" id="sa-kpis" aria-label="Resumen de la plataforma"></section>
+
+    <section class="admin-card" aria-labelledby="sa-lista-titulo">
+      <div class="admin-card-head">
+        <h2 id="sa-lista-titulo">Todos los negocios</h2>
+      </div>
+      <div class="admin-card-body">
+        <div class="admin-toolbar sa-filtros">
+          <input type="search" class="field admin-buscar" id="sa-buscar" placeholder="Buscar por nombre, dirección o contacto" aria-label="Buscar negocio">
+          <select class="field" id="sa-filtro-estado" aria-label="Filtrar por estado">
+            <option value="">Todos los estados</option>
+            <option value="ACTIVO">Activos</option>
+            <option value="PRUEBA">En prueba</option>
+            <option value="SUSPENDIDO">Suspendidos</option>
+            <option value="CANCELADO">Cancelados</option>
+          </select>
+          <select class="field" id="sa-filtro-plan" aria-label="Filtrar por plan">
+            <option value="">Todos los planes</option>
+          </select>
+        </div>
+        <div class="sa-lista" id="sa-lista" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="sa-dialogo" id="sa-dlg-nuevo" aria-labelledby="sa-nuevo-titulo">
+    <form id="sa-form-nuevo" novalidate>
+      <div class="sa-dialogo-cab">
+        <h2 id="sa-nuevo-titulo">Nuevo negocio</h2>
+        <button type="button" class="sa-cerrar flat" data-cerrar aria-label="Cerrar">✕</button>
+      </div>
+      <div class="sa-dialogo-cuerpo admin-form-grid sa-form-dos">
+        <div class="admin-field"><label for="n-nombre">Nombre del negocio</label><input class="field" id="n-nombre" name="nombre" maxlength="120" required></div>
+        <div class="admin-field"><label for="n-slug">Dirección (para la carta y el ingreso)</label><input class="field" id="n-slug" name="slug" maxlength="40" pattern="[a-z0-9-]+" placeholder="se-sugiere-sola"><p class="admin-help" id="n-slug-ayuda">Se usa en /n/<strong>dirección</strong>/carta.</p></div>
+        <div class="admin-field"><label for="n-plan">Plan</label><select class="field" id="n-plan" name="planCodigo"></select></div>
+        <div class="admin-field"><label for="n-estado">Estado inicial</label>
+          <select class="field" id="n-estado" name="estado"><option value="PRUEBA">En prueba (14 días)</option><option value="ACTIVO">Activo</option></select></div>
+        <div class="admin-field"><label for="n-ciclo">Facturación</label>
+          <select class="field" id="n-ciclo" name="ciclo"><option value="MENSUAL">Mensual</option><option value="ANUAL">Anual</option></select></div>
+        <div class="admin-field"><label for="n-vence">Vence (opcional)</label><input class="field" id="n-vence" name="venceEn" type="date"></div>
+        <div class="admin-field"><label for="n-admin">Usuario administrador</label><input class="field" id="n-admin" name="adminUsername" maxlength="40" required placeholder="admin.minegocio" autocomplete="off"></div>
+        <div class="admin-field"><label for="n-admin-nombre">Nombre del administrador</label><input class="field" id="n-admin-nombre" name="adminNombre" maxlength="80" placeholder="Dueño"></div>
+        <div class="admin-field"><label for="n-contacto">Contacto</label><input class="field" id="n-contacto" name="contactoNombre" maxlength="120"></div>
+        <div class="admin-field"><label for="n-telefono">Teléfono</label><input class="field" id="n-telefono" name="contactoTelefono" maxlength="40" inputmode="tel"></div>
+        <div class="admin-field"><label for="n-email">Correo</label><input class="field" id="n-email" name="contactoEmail" maxlength="120" type="email"></div>
+        <div class="admin-field admin-campo-ancho"><label for="n-notas">Notas internas</label><textarea class="field" id="n-notas" name="notas" maxlength="1000"></textarea></div>
+        <p class="admin-error admin-campo-ancho" id="n-error" role="alert"></p>
+      </div>
+      <div class="sa-dialogo-pie">
+        <button type="button" class="button-secondary" data-cerrar>Cancelar</button>
+        <button type="submit" class="button-primary">Crear negocio</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="sa-dialogo" id="sa-dlg-acceso" aria-labelledby="sa-acceso-titulo">
+    <div class="sa-dialogo-cab">
+      <h2 id="sa-acceso-titulo">Acceso del administrador</h2>
+      <button type="button" class="sa-cerrar flat" data-cerrar aria-label="Cerrar">✕</button>
+    </div>
+    <div class="sa-dialogo-cuerpo">
+      <p>Entrega estos datos al dueño del negocio. La contraseña es temporal: al ingresar deberá crear una propia. <strong>No se vuelve a mostrar.</strong></p>
+      <dl class="sa-credenciales">
+        <div><dt>Ingreso</dt><dd id="acc-url"></dd></div>
+        <div><dt>Usuario</dt><dd id="acc-usuario"></dd></div>
+        <div><dt>Contraseña temporal</dt><dd id="acc-clave" class="sa-clave"></dd></div>
+      </dl>
+    </div>
+    <div class="sa-dialogo-pie">
+      <button type="button" class="button-secondary" id="acc-copiar">Copiar datos</button>
+      <button type="button" class="button-primary" data-cerrar>Listo</button>
+    </div>
+  </dialog>
+
+  <dialog class="sa-dialogo sa-dialogo-ancho" id="sa-dlg-negocio" aria-labelledby="sa-negocio-titulo">
+    <div class="sa-dialogo-cab">
+      <h2 id="sa-negocio-titulo">Negocio</h2>
+      <button type="button" class="sa-cerrar flat" data-cerrar aria-label="Cerrar">✕</button>
+    </div>
+    <div class="sa-pestanas" role="tablist" aria-label="Secciones del negocio">
+      <button type="button" role="tab" class="flat" data-pestana="suscripcion" aria-selected="true">Suscripción</button>
+      <button type="button" role="tab" class="flat" data-pestana="modulos" aria-selected="false">Módulos</button>
+      <button type="button" role="tab" class="flat" data-pestana="datos" aria-selected="false">Datos</button>
+      <button type="button" role="tab" class="flat" data-pestana="registro" aria-selected="false">Historial</button>
+    </div>
+    <div class="sa-dialogo-cuerpo">
+      <section data-panel="suscripcion" role="tabpanel">
+        <div class="sa-uso" id="d-uso"></div>
+        <form id="sa-form-suscripcion" class="admin-form-grid sa-form-dos" novalidate>
+          <div class="admin-field"><label for="s-plan">Plan</label><select class="field" id="s-plan" name="planCodigo"></select></div>
+          <div class="admin-field"><label for="s-estado">Estado</label>
+            <select class="field" id="s-estado" name="estado">
+              <option value="ACTIVO">Activo</option><option value="PRUEBA">En prueba</option>
+              <option value="SUSPENDIDO">Suspendido</option><option value="CANCELADO">Cancelado</option>
+            </select></div>
+          <div class="admin-field"><label for="s-ciclo">Facturación</label>
+            <select class="field" id="s-ciclo" name="ciclo"><option value="MENSUAL">Mensual</option><option value="ANUAL">Anual</option></select></div>
+          <div class="admin-field"><label for="s-inicio">Inicio</label><input class="field" id="s-inicio" name="inicioSuscripcion" type="date"></div>
+          <div class="admin-field"><label for="s-vence">Vence</label><input class="field" id="s-vence" name="venceEn" type="date"></div>
+          <p class="admin-help admin-campo-ancho">Suspender o cancelar cierra las sesiones del personal y oculta la carta pública. Los datos se conservan.</p>
+          <div class="admin-campo-ancho sa-acciones-form">
+            <button type="button" class="button-secondary" id="s-acceso">Generar contraseña temporal del administrador</button>
+            <button type="submit" class="button-primary">Guardar suscripción</button>
+          </div>
+        </form>
+      </section>
+      <section data-panel="modulos" role="tabpanel" hidden>
+        <p class="admin-help">Por defecto cada negocio recibe los módulos de su plan. Puedes activar o desactivar módulos puntuales para este negocio.</p>
+        <form id="sa-form-modulos" novalidate>
+          <div class="sa-modulos" id="d-modulos"></div>
+          <div class="sa-acciones-form"><button type="submit" class="button-primary">Guardar módulos</button></div>
+        </form>
+      </section>
+      <section data-panel="datos" role="tabpanel" hidden>
+        <form id="sa-form-datos" class="admin-form-grid sa-form-dos" novalidate>
+          <div class="admin-field"><label for="e-nombre">Nombre</label><input class="field" id="e-nombre" name="nombre" maxlength="120" required></div>
+          <div class="admin-field"><label for="e-slug">Dirección</label><input class="field" id="e-slug" name="slug" maxlength="40" required><p class="admin-help">Cambiarla invalida los QR ya impresos.</p></div>
+          <div class="admin-field"><label for="e-contacto">Contacto</label><input class="field" id="e-contacto" name="contactoNombre" maxlength="120"></div>
+          <div class="admin-field"><label for="e-telefono">Teléfono</label><input class="field" id="e-telefono" name="contactoTelefono" maxlength="40"></div>
+          <div class="admin-field"><label for="e-email">Correo</label><input class="field" id="e-email" name="contactoEmail" maxlength="120" type="email"></div>
+          <div class="admin-field admin-campo-ancho"><label for="e-notas">Notas internas</label><textarea class="field" id="e-notas" name="notas" maxlength="1000"></textarea></div>
+          <div class="admin-campo-ancho sa-acciones-form"><button type="submit" class="button-primary">Guardar datos</button></div>
+        </form>
+      </section>
+      <section data-panel="registro" role="tabpanel" hidden>
+        <ul class="sa-registro" id="d-registro"></ul>
+      </section>
+    </div>
+  </dialog>
+</body>
+</html>

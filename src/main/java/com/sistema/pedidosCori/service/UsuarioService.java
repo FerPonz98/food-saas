@@ -21,6 +21,7 @@ import com.sistema.pedidosCori.models.dto.ConfiguracionNegocioVista;
 import com.sistema.pedidosCori.models.dto.UsuarioRequest;
 import com.sistema.pedidosCori.models.dto.UsuarioVista;
 import com.sistema.pedidosCori.models.entity.AccionAuditoria;
+import com.sistema.pedidosCori.models.entity.Modulo;
 import com.sistema.pedidosCori.models.entity.Rol;
 import com.sistema.pedidosCori.models.entity.Usuario;
 
@@ -36,11 +37,12 @@ public class UsuarioService {
     private final SessionRegistry sessionRegistry;
     private final AuditoriaService auditoria;
     private final ConfiguracionNegocioService configuracion;
+    private final ModuloService modulos;
 
     @Transactional(readOnly = true)
     public List<UsuarioVista> listar() {
         String actual = UsuarioActual.nombre().orElse(null);
-        return usuarioDao.findAll().stream()
+        return usuarioDao.findByNegocioId(NegocioActual.requerido()).stream()
             .sorted(Comparator.comparing((Usuario u) -> u.getRol().ordinal())
                 .thenComparing(u -> Objects.toString(u.getNombreCompleto(), u.getUsername()), String.CASE_INSENSITIVE_ORDER)
                 .thenComparing(Usuario::getUsername))
@@ -55,8 +57,10 @@ public class UsuarioService {
         Rol rol = rol(r.rol());
         String password = PoliticaPassword.validar(r.password(), username);
         if (usuarioDao.existsByUsername(username)) throw new IllegalStateException("Ese nombre de usuario ya existe");
+        long negocio = NegocioActual.requerido();
+        if (rol == Rol.ADMIN) exigirVariosAdministradores(negocio);
         Usuario u = usuarioDao.save(Usuario.builder()
-            .username(username).nombreCompleto(nombre).rol(rol)
+            .username(username).nombreCompleto(nombre).rol(rol).negocioId(negocio)
             .password(passwordEncoder.encode(password)).activo(true)
             .debeCambiarPassword(true).passwordActualizadaEn(LocalDateTime.now()).build());
         auditoria.registrar(AccionAuditoria.USUARIO_CREADO, "Usuario", u.getId(),
@@ -76,8 +80,10 @@ public class UsuarioService {
         if (esActual && rol != Rol.ADMIN && u.getRol() == Rol.ADMIN)
             throw new IllegalStateException("No puedes quitarte el rol de administrador");
         boolean eraAdminActivo = u.getRol() == Rol.ADMIN && Boolean.TRUE.equals(u.getActivo());
-        if (eraAdminActivo && (rol != Rol.ADMIN || !activo) && usuarioDao.countByRolAndActivoTrue(Rol.ADMIN) <= 1)
+        if (eraAdminActivo && (rol != Rol.ADMIN || !activo)
+                && usuarioDao.countByNegocioIdAndRolAndActivoTrue(u.getNegocioId(), Rol.ADMIN) <= 1)
             throw new IllegalStateException("Debe quedar al menos un administrador activo");
+        if (!eraAdminActivo && rol == Rol.ADMIN && activo) exigirVariosAdministradores(u.getNegocioId());
 
         Rol rolAnterior = u.getRol();
         String nombreAnterior = u.getNombreCompleto();
@@ -118,7 +124,7 @@ public class UsuarioService {
         Usuario u = buscar(id);
         if (esActual(u)) throw new IllegalStateException("No puedes eliminar tu propia cuenta");
         if (u.getRol() == Rol.ADMIN && Boolean.TRUE.equals(u.getActivo())
-                && usuarioDao.countByRolAndActivoTrue(Rol.ADMIN) <= 1)
+                && usuarioDao.countByNegocioIdAndRolAndActivoTrue(u.getNegocioId(), Rol.ADMIN) <= 1)
             throw new IllegalStateException("Debe quedar al menos un administrador activo");
         usuarioDao.delete(u);
         auditoria.registrar(AccionAuditoria.USUARIO_ELIMINADO, "Usuario", u.getId(),
@@ -144,7 +150,13 @@ public class UsuarioService {
     }
 
     private Usuario buscar(Long id) {
-        return usuarioDao.findById(id).orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+        return usuarioDao.findByIdAndNegocioId(id, NegocioActual.requerido())
+            .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+    }
+
+    private void exigirVariosAdministradores(Long negocio) {
+        if (usuarioDao.countByNegocioIdAndRolAndActivoTrue(negocio, Rol.ADMIN) >= 1 && !modulos.tiene(Modulo.VARIOS_ADMINISTRADORES))
+            throw new ModuloService.ModuloNoIncluido(Modulo.VARIOS_ADMINISTRADORES);
     }
 
     private boolean esActual(Usuario u) {
@@ -164,6 +176,7 @@ public class UsuarioService {
             case ADMIN -> "Administrador";
             case MESERO -> negocio != null ? negocio.getEtiquetaRolMesero() : "Mesero";
             case COCINA -> negocio != null ? negocio.getEtiquetaRolCocina() : "Cocina";
+            case SUPERADMIN -> "Superadministrador";
         };
     }
 
@@ -186,7 +199,9 @@ public class UsuarioService {
     private static Rol rol(String valor) {
         if (valor == null || valor.isBlank()) throw new IllegalArgumentException("Selecciona un rol");
         try {
-            return Rol.valueOf(valor.trim().toUpperCase(Locale.ROOT));
+            Rol rol = Rol.valueOf(valor.trim().toUpperCase(Locale.ROOT));
+            if (rol == Rol.SUPERADMIN) throw new IllegalArgumentException("Rol inválido");
+            return rol;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Rol inválido");
         }

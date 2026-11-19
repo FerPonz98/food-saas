@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="|Servicio suspendido — ${negocio.nombreNegocio}|">Servicio suspendido</title>
+    <th:block th:replace="~{fragments/head :: branding}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/cuenta.css}">
+</head>
+<body class="login-page">
+    <main class="login-card cuenta-card">
+        <div class="cuenta-cabecera">
+            <img th:src="${negocio.logoUrl}" th:alt="|Logo de ${negocio.nombreNegocio}|">
+            <h1>Servicio suspendido</h1>
+        </div>
+        <p class="cuenta-intro">
+            La suscripción de <strong th:text="${negocio.nombreNegocio}">tu negocio</strong> está suspendida, por eso el sistema no está disponible por ahora.
+        </p>
+        <p class="cuenta-intro">Tus datos se conservan completos. En cuanto se reactive la suscripción podrás seguir trabajando como siempre.</p>
+        <p class="cuenta-intro">Si eres el dueño o administrador, comunícate con soporte para regularizarla.</p>
+        <form th:action="@{/logout}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <button type="submit" class="button-primary">Cerrar sesión</button>
+        </form>
+    </main>
+</body>
+</html>

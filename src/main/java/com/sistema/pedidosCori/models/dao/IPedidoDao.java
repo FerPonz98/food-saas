@@ -44,4 +44,9 @@ public interface IPedidoDao extends JpaRepository<Pedido, Long> {
         "AND p.pagado = false " +
         "AND p.numeroMesa IS NOT NULL")
     List<Integer> findMesasOcupadas(@Param("estados") List<EstadoPedido> estados);
+
+    @Query("SELECT p.negocioId, COUNT(p) FROM Pedido p WHERE p.fechaCreacion >= :desde GROUP BY p.negocioId")
+    List<Object[]> contarDesdePorNegocio(@Param("desde") LocalDateTime desde);
+
+    List<Pedido> findByNumeroMesaAndPagadoFalseAndEstadoInOrderByFechaCreacionAsc(Integer mesa, List<EstadoPedido> estados);
 }

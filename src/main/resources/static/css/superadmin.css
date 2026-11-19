@@ -1,0 +1,70 @@
+.sa-kpis { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); }
+.sa-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: var(--space-3); }
+.sa-negocio {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-main);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+}
+.sa-negocio-cab { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); }
+.sa-negocio-titulo h3 { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
+.sa-slug { color: var(--text-muted); font-size: .85rem; font-family: ui-monospace, monospace; }
+.sa-etiquetas { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: flex-start; }
+.sa-datos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); margin: 0; }
+.sa-datos dt { color: var(--text-muted); font-size: .72rem; font-weight: 700; }
+.sa-datos dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.sa-avisos { display: grid; gap: var(--space-1); margin: 0; padding: var(--space-2) var(--space-3); list-style: none; border-radius: var(--radius-sm); border: 1px solid var(--status-warning-border); background: var(--status-warning-soft); color: var(--status-warning-text); font-size: .85rem; font-weight: 600; }
+.sa-negocio-pie { display: flex; justify-content: flex-end; }
+
+.sa-dialogo {
+  width: min(640px, calc(100vw - 16px)); max-height: 92dvh; margin: auto; padding: 0;
+  border: 1px solid var(--border-main); border-radius: var(--radius-lg);
+  background: var(--surface-card); color: var(--text-main); box-shadow: var(--shadow-overlay);
+}
+.sa-dialogo-ancho { width: min(820px, calc(100vw - 16px)); }
+.sa-dialogo::backdrop { background: var(--overlay-backdrop); }
+.sa-dialogo[open] { display: flex; flex-direction: column; }
+.sa-dialogo > form { display: flex; flex-direction: column; min-height: 0; }
+.sa-dialogo-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5); border-bottom: 1px solid var(--border-main); }
+.sa-dialogo-cab h2 { margin: 0; font-size: 1.15rem; }
+.sa-cerrar { display: inline-grid; place-items: center; width: 44px; height: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: inherit; font: inherit; font-weight: 800; cursor: pointer; }
+.sa-dialogo-cuerpo { padding: var(--space-4) var(--space-5); overflow-y: auto; }
+.sa-dialogo-pie { display: flex; justify-content: flex-end; gap: var(--space-2); padding: var(--space-3) var(--space-5); border-top: 1px solid var(--border-main); }
+.sa-form-dos { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.sa-acciones-form { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-3); }
+.sa-pestanas { display: flex; gap: var(--space-1); padding: var(--space-2) var(--space-5) 0; border-bottom: 1px solid var(--border-main); overflow-x: auto; }
+.sa-pestanas button { min-height: 44px; margin: 0; padding: 0 var(--space-3); border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--text-muted); font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.sa-pestanas button[aria-selected="true"] { color: var(--brand-primary-text); border-bottom-color: var(--brand-primary-text); }
+.sa-uso { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); margin-bottom: var(--space-4); }
+.sa-uso-item { display: grid; gap: 2px; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--surface-raised); }
+.sa-uso-excedido { background: var(--status-warning-soft); color: var(--status-warning-text); }
+.sa-modulos { display: grid; gap: var(--space-2); }
+.sa-modulos-grupo { margin: var(--space-3) 0 0; font-size: .78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+.sa-modulo { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(150px, 200px); align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--border-main); }
+.sa-modulo-texto { display: grid; gap: 2px; }
+.sa-modulo-estado { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--surface-sunken); color: var(--text-muted); font-weight: 800; }
+.sa-modulo-estado.sa-activo { background: var(--status-success-soft); color: var(--status-success-text); }
+.sa-registro { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.sa-registro-item { display: grid; gap: 2px; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); background: var(--surface-raised); }
+.sa-registro-item strong { text-transform: capitalize; }
+.sa-credenciales { display: grid; gap: var(--space-2); margin: var(--space-3) 0 0; }
+.sa-credenciales div { padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--surface-raised); }
+.sa-credenciales dt { color: var(--text-muted); font-size: .75rem; font-weight: 800; text-transform: uppercase; }
+.sa-credenciales dd { margin: 2px 0 0; font-weight: 800; overflow-wrap: anywhere; }
+.sa-clave { font-family: ui-monospace, monospace; font-size: 1.2rem; letter-spacing: .04em; }
+
+.sa-planes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: var(--space-4); align-items: start; }
+.sa-plan-modulos { display: grid; gap: var(--space-2); margin: 0; padding: var(--space-3); border: 1px solid var(--border-main); border-radius: var(--radius-md); }
+.sa-plan-modulos legend { padding: 0 var(--space-1); font-weight: 800; }
+.sa-check { display: flex; align-items: flex-start; gap: var(--space-2); min-height: 44px; cursor: pointer; }
+.sa-check input { width: 20px; height: 20px; margin-top: 2px; flex-shrink: 0; accent-color: var(--brand-primary); }
+.sa-check > span { display: grid; gap: 2px; }
+
+@media (max-width: 560px) {
+  .sa-datos, .sa-uso { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sa-modulo { grid-template-columns: auto minmax(0, 1fr); }
+  .sa-modulo select { grid-column: 1 / -1; }
+  .sa-dialogo-cuerpo { padding: var(--space-3); }
+}

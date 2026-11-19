@@ -38,6 +38,7 @@ import com.sistema.pedidosCori.models.entity.Plato;
 import com.sistema.pedidosCori.models.entity.PresentacionPlato;
 import com.sistema.pedidosCori.service.AuditoriaService;
 import com.sistema.pedidosCori.service.CategoriaService;
+import com.sistema.pedidosCori.service.ComandaService;
 import com.sistema.pedidosCori.service.PlatoImagenService;
 import com.sistema.pedidosCori.service.ConfiguracionNegocioService;
 import com.sistema.pedidosCori.service.IPedidoService;
@@ -59,6 +60,7 @@ public class ApiController {
     private final AuditoriaService auditoria;
     private final CategoriaService categoriaService;
     private final PlatoImagenService platoImagenService;
+    private final ComandaService comandas;
 
     @GetMapping("/platos/todos")
     public ResponseEntity<List<Plato>> getTodosLosPlatos() {
@@ -193,54 +195,17 @@ public class ApiController {
 
  
     @PostMapping("/pedidos")
-    @Transactional
     public ResponseEntity<Pedido> crearPedido(@RequestBody PedidoRequestDTO dto) {
-        Pedido pedido = pedidoService.crearPedido(dto);
-
-        Map<Long,Integer> descPlato=new HashMap<>(), descPres=new HashMap<>(), descSopa=new HashMap<>();
-        pedido.getDetalles().forEach(d -> {
-            if (d.getPresentacion() != null) descPres.merge(d.getPresentacion().getId(), d.getCantidad(), Integer::sum);
-            else descPlato.merge(d.getPlato().getId(), d.getCantidad(), Integer::sum);
-            if (d.getAcompananteSopa() != null) descSopa.merge(d.getAcompananteSopa().getId(), d.getCantidad(), Integer::sum);
-        });
-        aplicarDescuentoStock(descPlato, descPres, descSopa);
-
-        NotificacionWsDTO notif = NotificacionWsDTO.builder()
-            .pedidoId(pedido.getId()).numeroMesa(pedido.getNumeroMesa())
-            .nombreCliente(pedido.getNombreCliente()).estado(EstadoPedido.PENDIENTE)
-            .mensaje("Nuevo pedido — " + labelPedido(pedido)).tipo("NUEVO_PEDIDO").build();
-        messagingTemplate.convertAndSend("/topic/cocina", notif);
-        messagingTemplate.convertAndSend("/topic/mesero", notif);
-        return ResponseEntity.ok(pedido);
+        return ResponseEntity.ok(comandas.crear(dto));
     }
 
- 
     @PostMapping("/pedidos/{id}/detalles")
-    @Transactional
     public ResponseEntity<Pedido> agregarDetalles(
             @PathVariable Long id,
             @RequestBody List<PedidoRequestDTO.DetalleRequestDTO> nuevosDetalles) {
-
-        Pedido saved = pedidoService.agregarDetalles(id, nuevosDetalles);
-
-        Map<Long,Integer> descPlato=new HashMap<>(), descPres=new HashMap<>(), descSopa=new HashMap<>();
-        nuevosDetalles.forEach(d -> {
-            if (d.getPresentacionId() != null) descPres.merge(d.getPresentacionId(), d.getCantidad(), Integer::sum);
-            else descPlato.merge(d.getPlatoId(), d.getCantidad(), Integer::sum);
-            if (d.getAcompananteSopaId() != null) descSopa.merge(d.getAcompananteSopaId(), d.getCantidad(), Integer::sum);
-        });
-        aplicarDescuentoStock(descPlato, descPres, descSopa);
-
-        NotificacionWsDTO notif = NotificacionWsDTO.builder()
-            .pedidoId(saved.getId()).numeroMesa(saved.getNumeroMesa())
-            .nombreCliente(saved.getNombreCliente()).estado(saved.getEstado())
-            .mensaje("Extras agregados — " + labelPedido(saved)).tipo("ITEMS_AGREGADOS").build();
-        messagingTemplate.convertAndSend("/topic/cocina", notif);
-        messagingTemplate.convertAndSend("/topic/mesero", notif);
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.ok(comandas.agregar(id, nuevosDetalles));
     }
 
- 
     @PutMapping("/pedidos/{id}/estado")
     public ResponseEntity<Pedido> actualizarEstado(@PathVariable Long id, @RequestParam EstadoPedido estado,
             Authentication authentication) {
@@ -340,51 +305,7 @@ public class ApiController {
     }
 
     private String labelPedido(Pedido p) {
-        return p.getNumeroMesa() != null
-            ? configuracionNegocioService.vista().getPuntoAtencionSingular() + " " + p.getNumeroMesa()
-            : p.getNombreCliente();
-    }
-
-    private void aplicarDescuentoStock(Map<Long,Integer> descPlato, Map<Long,Integer> descPres, Map<Long,Integer> descSopa) {
-
-        descPlato.forEach((pid, q) -> {
-            platoDao.findById(pid).ifPresent(p -> {
-                if (p.getStockDisponible() != null) {
-                    int filasAfectadas = platoDao.descontarStockPreciso(pid, q);
-                    if (filasAfectadas == 0) {
-                        throw new IllegalStateException("Stock insuficiente para el plato: " + p.getNombre());
-                    }
-                    int nuevoStock = p.getStockDisponible() - q;
-                    messagingTemplate.convertAndSend("/topic/stock", StockUpdateDTO.builder().platoId(p.getId()).stockRestante(nuevoStock).nombrePlato(p.getNombre()).build());
-                }
-            });
-        });
-
-        descPres.forEach((presId, q) -> {
-            presentacionPlatoDao.findById(presId).ifPresent(pres -> {
-                if (pres.getStockDisponible() != null) {
-                    int filasAfectadas = presentacionPlatoDao.descontarStockPreciso(presId, q);
-                    if (filasAfectadas == 0) {
-                        throw new IllegalStateException("Stock insuficiente para el tamaño: " + pres.getNombre() + " de " + pres.getPlato().getNombre());
-                    }
-                    int nuevoStock = pres.getStockDisponible() - q;
-                    messagingTemplate.convertAndSend("/topic/stock", StockUpdateDTO.builder().platoId(pres.getPlato().getId()).presentacionId(pres.getId()).stockRestante(nuevoStock).nombrePlato(pres.getPlato().getNombre() + " – " + pres.getNombre()).build());
-                }
-            });
-        });
-
-        descSopa.forEach((sid, q) -> {
-            platoDao.findById(sid).ifPresent(s -> {
-                if (s.getStockDisponible() != null) {
-                    int filasAfectadas = platoDao.descontarStockPreciso(sid, q);
-                    if (filasAfectadas == 0) {
-                        throw new IllegalStateException("Stock insuficiente de la sopa: " + s.getNombre());
-                    }
-                    int nuevoStock = s.getStockDisponible() - q;
-                    messagingTemplate.convertAndSend("/topic/stock", StockUpdateDTO.builder().platoId(s.getId()).stockRestante(nuevoStock).nombrePlato(s.getNombre()).build());
-                }
-            });
-        });
+        return comandas.etiqueta(p);
     }
 
     @GetMapping("/mesas/ocupadas")

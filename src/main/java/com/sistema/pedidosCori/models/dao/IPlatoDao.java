@@ -42,4 +42,9 @@ public interface IPlatoDao extends JpaRepository<Plato, Long> {
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE Plato p SET p.categoria = :nueva WHERE p.categoria = :actual")
     int cambiarCategoria(@Param("actual") String actual, @Param("nueva") String nueva);
+
+    @Query("SELECT p.negocioId, COUNT(p) FROM Plato p WHERE p.archivado = false GROUP BY p.negocioId")
+    List<Object[]> contarActivosPorNegocio();
+
+    long countByArchivadoFalse();
 }

@@ -1,5 +1,7 @@
 package com.sistema.pedidosCori.models.entity;
 
+import org.hibernate.annotations.TenantId;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -34,6 +36,11 @@ public class Plato {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @TenantId
+    @JsonIgnore
+    @Column(name = "negocio_id", nullable = false, updatable = false)
+    private Long negocioId;
 
     @Column(nullable = false)
     private String nombre;

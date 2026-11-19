@@ -29,7 +29,7 @@
 
     function cantidad() {
         const n = parseInt(valor('cantidadPuntosAtencion'), 10);
-        return Number.isNaN(n) ? 0 : Math.min(200, Math.max(0, n));
+        return Number.isNaN(n) ? 0 : Math.min(500, Math.max(0, n));
     }
 
     function vistaMesas() {
@@ -100,7 +100,7 @@
             const v = valor(nombre).trim();
             if (nombre === 'cantidadPuntosAtencion') {
                 const n = Number(v);
-                if (v === '' || !Number.isInteger(n) || n < 0 || n > 200) mensaje = 'Escribe un número entero entre 0 y 200.';
+                if (v === '' || !Number.isInteger(n) || n < 0 || n > 500) mensaje = 'Escribe un número entero entre 0 y 500.';
             } else if (!v) {
                 mensaje = 'Este dato no puede quedar vacío.';
             }
@@ -122,7 +122,7 @@
 
     form.querySelectorAll('[data-paso]').forEach(boton => boton.addEventListener('click', () => {
         const campo = form.elements.cantidadPuntosAtencion;
-        campo.value = String(Math.min(200, Math.max(0, cantidad() + Number(boton.dataset.paso))));
+        campo.value = String(Math.min(500, Math.max(0, cantidad() + Number(boton.dataset.paso))));
         campo.dispatchEvent(new Event('input', { bubbles: true }));
     }));
 

@@ -7,6 +7,16 @@
     <meta name="sesion-usuario" th:if="${sesionUsuario != null}" th:content="${sesionUsuario}">
     <script>(function(){var p;try{p=localStorage.getItem('tema');}catch(e){}var o=p==='oscuro'||(p!=='claro'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',o?'dark':'light');})();</script>
     <link rel="icon" th:href="${negocio.logoUrl}" th:type="${negocio.logoMimeType ?: 'image/svg+xml'}">
+    <meta name="theme-color" th:content="${negocio.colorPrimario}">
+    <th:block th:if="${negocio.slug != null and #lists.contains(negocio.modulos, 'APP_INSTALABLE')}">
+    <link rel="manifest" th:href="@{/n/{slug}/manifest.webmanifest(slug=${negocio.slug})}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" th:content="${negocio.nombreNegocio}">
+    <link rel="apple-touch-icon" sizes="180x180" th:href="@{/n/{slug}/pwa/icon-180.png(slug=${negocio.slug})}">
+    <script defer th:src="@{/js/pwa.js}"></script>
+    </th:block>
     <link rel="stylesheet" th:href="@{/css/theme.css}">
     <style th:utext="${temaCss}"></style>
     <script th:inline="javascript">window.NEGOCIO = /*[[${negocio}]]*/ {};</script>

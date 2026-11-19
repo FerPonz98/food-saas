@@ -1,0 +1,55 @@
+.llm-boton {
+  position: fixed; left: var(--space-3); bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 1001;
+  display: inline-flex; align-items: center; gap: var(--space-2); min-height: 52px; margin: 0; padding: 0 var(--space-4);
+  border: 0; border-radius: 999px; background: var(--status-warning); color: var(--status-warning-on);
+  font: inherit; font-weight: 800; box-shadow: var(--shadow-overlay); cursor: pointer;
+  animation: llm-latido 1.6s ease-in-out infinite;
+}
+.llm-boton[hidden] { display: none; }
+.llm-boton.llm-boton-cuenta { background: var(--status-info); color: var(--status-info-on); }
+.llm-boton-icono { font-size: 1.3rem; line-height: 1; }
+.llm-boton-num { min-width: 1.4em; font-size: 1.1rem; text-align: center; }
+.llm-boton:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+@keyframes llm-latido { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@media (prefers-reduced-motion: reduce) { .llm-boton { animation: none; } }
+
+.llm-alertas {
+  position: fixed; top: calc(66px + env(safe-area-inset-top)); left: var(--space-3); right: var(--space-3); z-index: 1002;
+  display: grid; gap: var(--space-2); max-width: 520px; margin: 0 auto; pointer-events: none;
+}
+.llm-alerta {
+  display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3);
+  border-radius: var(--radius-md); border: 2px solid var(--status-warning-border);
+  background: var(--status-warning-soft); color: var(--status-warning-text);
+  box-shadow: var(--shadow-overlay); pointer-events: auto; animation: ui-pop-in var(--dur-base) var(--ease-out);
+}
+.llm-alerta.llm-cuenta { border-color: var(--status-info-border); background: var(--status-info-soft); color: var(--status-info-text); }
+.llm-item-info { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.llm-item-titulo { font-size: 1.02rem; font-weight: 800; overflow-wrap: anywhere; }
+.llm-item-meta { font-size: .85rem; font-weight: 600; opacity: .9; }
+.llm-atender { flex: none; min-height: 44px; padding: 0 var(--space-3); white-space: nowrap; }
+.llm-cerrar {
+  flex: none; display: inline-grid; place-items: center; width: 40px; height: 40px; margin: 0; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 1rem; font-weight: 700; cursor: pointer;
+}
+
+.llm-panel {
+  width: min(480px, calc(100vw - 24px)); max-height: 80dvh; margin: auto; padding: 0;
+  border: 1px solid var(--border-main); border-radius: var(--radius-lg);
+  background: var(--surface-card); color: var(--text-main); box-shadow: var(--shadow-overlay);
+}
+.llm-panel::backdrop { background: var(--overlay-backdrop); }
+.llm-panel-cab { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4); background: var(--surface-card); border-bottom: 1px solid var(--border-main); }
+.llm-panel-cab h2 { margin: 0; font-size: 1.1rem; }
+.llm-lista { display: grid; gap: var(--space-2); margin: 0; padding: var(--space-3); list-style: none; }
+.llm-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--status-warning-border); background: var(--status-warning-soft); color: var(--status-warning-text); }
+.llm-item.llm-cuenta { border-color: var(--status-info-border); background: var(--status-info-soft); color: var(--status-info-text); }
+.llm-vacio { padding: var(--space-4); color: var(--text-muted); text-align: center; }
+.llm-boton.llm-boton-pedido { background: var(--action-primary); color: var(--action-primary-on); }
+.llm-acciones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); flex: none; max-width: 100%; }
+.llm-item { flex-wrap: wrap; }
+.llm-item.llm-confirmado { opacity: .85; }
+.llm-item.llm-pedido, .llm-alerta.llm-pedido { border-color: var(--status-success-border); background: var(--status-success-soft); color: var(--status-success-text); }
+.llm-pedido-items { margin: var(--space-1) 0; padding-left: var(--space-4); font-size: .95rem; font-weight: 600; }
+.llm-pedido-nota { font-weight: 500; opacity: .85; }
+.llm-motivo { min-height: 44px; flex: 1 1 160px; }

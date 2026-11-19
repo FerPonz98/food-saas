@@ -17,6 +17,11 @@
       <div th:replace="~{fragments/sesion :: barra}"></div>
     </div>
   </header>
+  <div class="admin-aviso-suscripcion" role="status" th:if="${avisoSuscripcion != null}">
+    <span aria-hidden="true">⏳</span>
+    <span th:text="${avisoSuscripcion}">La suscripción vence pronto.</span>
+    <a th:href="@{/admin/plan}">Ver mi plan</a>
+  </div>
   <div class="admin-nav-fondo" data-admin-cerrar hidden></div>
   <nav class="admin-nav" id="admin-nav" aria-label="Administración">
     <div class="admin-nav-top">
@@ -67,6 +72,15 @@
           </a>
         </li>
         <li>
+          <a class="admin-nav-item" th:with="incluido=${modulos.contains('CARTA_QR')}"
+             th:href="${incluido} ? @{/admin/carta-qr} : @{/admin/plan(modulo='CARTA_QR')}"
+             th:attr="aria-current=${activa == 'carta-qr' ? 'page' : null}">
+            <span class="admin-nav-icono" aria-hidden="true">📱</span>
+            <span class="admin-nav-texto"><span class="admin-nav-label">Carta y QR</span><span class="admin-nav-hint">QR de mesas, Wi-Fi y avisos</span></span>
+            <span class="admin-nav-plan" th:unless="${incluido}">Pro</span>
+          </a>
+        </li>
+        <li>
           <a class="admin-nav-item" th:href="@{/admin/usuarios}" th:attr="aria-current=${activa == 'usuarios' ? 'page' : null}">
             <span class="admin-nav-icono" aria-hidden="true">👥</span>
             <span class="admin-nav-texto"><span class="admin-nav-label">Usuarios</span><span class="admin-nav-hint">Meseros, cocina y accesos</span></span>
@@ -76,6 +90,13 @@
           <a class="admin-nav-item" th:href="@{/admin/apariencia}" th:attr="aria-current=${activa == 'apariencia' ? 'page' : null}">
             <span class="admin-nav-icono" aria-hidden="true">🎨</span>
             <span class="admin-nav-texto"><span class="admin-nav-label">Apariencia</span><span class="admin-nav-hint">Nombre, logo y colores</span></span>
+          </a>
+        </li>
+        <li>
+          <a class="admin-nav-item" th:href="@{/admin/plan}" th:attr="aria-current=${activa == 'plan' ? 'page' : null}">
+            <span class="admin-nav-icono" aria-hidden="true">⭐</span>
+            <span class="admin-nav-texto"><span class="admin-nav-label">Mi plan</span>
+              <span class="admin-nav-hint" th:text="${negocio.planNombre != null} ? |Plan ${negocio.planNombre} y funciones| : 'Plan y funciones'">Plan y funciones</span></span>
           </a>
         </li>
       </ul>
@@ -90,9 +111,12 @@
           </a>
         </li>
         <li>
-          <a class="admin-nav-item" th:href="@{/admin/actividad}" th:attr="aria-current=${activa == 'actividad' ? 'page' : null}">
+          <a class="admin-nav-item" th:with="incluido=${modulos.contains('AUDITORIA')}"
+             th:href="${incluido} ? @{/admin/actividad} : @{/admin/plan(modulo='AUDITORIA')}"
+             th:attr="aria-current=${activa == 'actividad' ? 'page' : null}">
             <span class="admin-nav-icono" aria-hidden="true">🕒</span>
             <span class="admin-nav-texto"><span class="admin-nav-label">Actividad</span><span class="admin-nav-hint">Quién hizo qué y cuándo</span></span>
+            <span class="admin-nav-plan" th:unless="${incluido}">Premium</span>
           </a>
         </li>
       </ul>

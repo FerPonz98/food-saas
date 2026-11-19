@@ -7,7 +7,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.sistema.pedidosCori.models.dao.IPlatoDao;
 import com.sistema.pedidosCori.models.dao.IPresentacionPlatoDao;
@@ -18,6 +17,7 @@ import com.sistema.pedidosCori.models.entity.PresentacionPlato;
 import com.sistema.pedidosCori.models.entity.Rol;
 import com.sistema.pedidosCori.models.entity.Usuario;
 import com.sistema.pedidosCori.service.CategoriaService;
+import com.sistema.pedidosCori.service.EjecutorNegocio;
 import com.sistema.pedidosCori.service.PoliticaPassword;
 
 import lombok.RequiredArgsConstructor;
@@ -38,6 +38,8 @@ public class DataInitializer implements CommandLineRunner {
     private final PasswordEncoder       passwordEncoder;
     private final Environment           environment;
     private final CategoriaService      categoriaService;
+    private final EjecutorNegocio       ejecutor;
+    private final PlataformaInicial     plataforma;
     private final SecureRandom          random = new SecureRandom();
 
     @Value("${app.seed.admin-password:}")  private String adminPassword;
@@ -45,11 +47,17 @@ public class DataInitializer implements CommandLineRunner {
     @Value("${app.seed.cocina-password:}") private String cocinaPassword;
     @Value("${app.seed.demo-data:false}") private boolean demoData;
 
+    private Long negocio;
+
     @Override
-    @Transactional
     public void run(String... args) {
+        negocio = plataforma.negocioPrincipal();
+        ejecutor.en(negocio, this::inicializarNegocioPrincipal);
+    }
+
+    private void inicializarNegocioPrincipal() {
         boolean produccion = environment.acceptsProfiles(Profiles.of("prod"));
-        if (usuarioDao.count() == 0) {
+        if (usuarioDao.countByNegocioId(negocio) == 0) {
             if (produccion) exigirPassword("SEED_ADMIN_PASSWORD", adminPassword);
             crearUsuario("admin", adminPassword, "Dueño", Rol.ADMIN);
             if (!produccion || configurada(meseroPassword)) {
@@ -60,7 +68,7 @@ public class DataInitializer implements CommandLineRunner {
                 if (produccion) exigirPassword("SEED_COCINA_PASSWORD", cocinaPassword);
                 crearUsuario("cocina", cocinaPassword, "Cocina", Rol.COCINA);
             }
-        } else if (usuarioDao.countByRolAndActivoTrue(Rol.ADMIN) == 0) {
+        } else if (usuarioDao.countByNegocioIdAndRolAndActivoTrue(negocio, Rol.ADMIN) == 0) {
             asegurarAdministrador();
         }
         exigirCambioDeContrasenasDemo();
@@ -97,7 +105,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void asegurarAdministrador() {
-        usuarioDao.findByUsername("admin").ifPresentOrElse(admin -> {
+        usuarioDao.findByUsername("admin").filter(u -> negocio.equals(u.getNegocioId())).ifPresentOrElse(admin -> {
             admin.setRol(Rol.ADMIN);
             admin.setActivo(true);
             usuarioDao.save(admin);
@@ -121,6 +129,7 @@ public class DataInitializer implements CommandLineRunner {
         }
         usuarioDao.save(Usuario.builder()
             .username(username)
+            .negocioId(negocio)
             .password(passwordEncoder.encode(password))
             .nombreCompleto(nombre)
             .rol(rol)

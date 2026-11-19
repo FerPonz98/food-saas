@@ -210,6 +210,8 @@ public class PedidoServiceImpl implements IPedidoService{
         if (Boolean.TRUE.equals(pedido.getPagado())) {
             throw new IllegalStateException("El pedido ya está pagado");
         }
+        if (pedido.getAbonado() != null && pedido.getAbonado() > 0)
+            throw new IllegalStateException("Este pedido tiene pagos parciales: cobra el saldo desde «Dividir cuenta»");
         pedido.setPagado(true);
         pedido.setMetodoPago(metodoPago);
         pedido.setCobradoPor(UsuarioActual.nombre().orElse(null));

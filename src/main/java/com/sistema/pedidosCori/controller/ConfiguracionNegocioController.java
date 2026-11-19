@@ -53,7 +53,7 @@ class ConfiguracionApiController {
 class BrandingController {
     private final ConfiguracionNegocioService service;
 
-    @GetMapping("/branding/logo")
+    @GetMapping({ "/branding/logo", "/n/{slug}/logo" })
     ResponseEntity<byte[]> logo(@RequestParam(required = false) Long v,
             @org.springframework.web.bind.annotation.RequestHeader(value = "If-None-Match", required = false) String ifNoneMatch)
             throws IOException {

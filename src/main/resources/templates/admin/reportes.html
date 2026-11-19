@@ -30,14 +30,14 @@
         <h2 class="visually-hidden" id="rep-filtros-titulo">Elige las fechas</h2>
         <div class="rep-chips" role="group" aria-label="Fechas del reporte">
           <button type="button" class="rep-chip flat" data-periodo="hoy" aria-pressed="false">Hoy</button>
-          <button type="button" class="rep-chip flat" data-periodo="ayer" aria-pressed="false">Ayer</button>
-          <button type="button" class="rep-chip flat" data-periodo="esta-semana" aria-pressed="false">Esta semana</button>
-          <button type="button" class="rep-chip flat" data-periodo="semana-pasada" aria-pressed="false">Semana pasada</button>
-          <button type="button" class="rep-chip flat" data-periodo="este-mes" aria-pressed="false">Este mes</button>
-          <button type="button" class="rep-chip flat" data-periodo="mes-pasado" aria-pressed="false">Mes pasado</button>
-          <button type="button" class="rep-chip flat" data-periodo="ultimos-7" aria-pressed="false">Últimos 7 días</button>
-          <button type="button" class="rep-chip flat" data-periodo="ultimos-30" aria-pressed="false">Últimos 30 días</button>
-          <button type="button" class="rep-chip flat" id="rep-chip-personalizado" data-periodo="personalizado" aria-pressed="false" aria-expanded="false" aria-controls="rep-personalizado">Personalizado</button>
+          <button type="button" class="rep-chip flat" data-periodo="ayer" aria-pressed="false" th:hidden="${!modulos.contains('REPORTES_COMPLETOS')}">Ayer</button>
+          <button type="button" class="rep-chip flat" data-periodo="esta-semana" aria-pressed="false" th:hidden="${!modulos.contains('REPORTES_COMPLETOS')}">Esta semana</button>
+          <button type="button" class="rep-chip flat" data-periodo="semana-pasada" aria-pressed="false" th:hidden="${!modulos.contains('REPORTES_COMPLETOS')}">Semana pasada</button>
+          <button type="button" class="rep-chip flat" data-periodo="este-mes" aria-pressed="false" th:hidden="${!modulos.contains('REPORTES_COMPLETOS')}">Este mes</button>
+          <button type="button" class="rep-chip flat" data-periodo="mes-pasado" aria-pressed="false" th:hidden="${!modulos.contains('REPORTES_COMPLETOS')}">Mes pasado</button>
+          <button type="button" class="rep-chip flat" data-periodo="ultimos-7" aria-pressed="false" th:hidden="${!modulos.contains('REPORTES_COMPLETOS')}">Últimos 7 días</button>
+          <button type="button" class="rep-chip flat" data-periodo="ultimos-30" aria-pressed="false" th:hidden="${!modulos.contains('REPORTES_COMPLETOS')}">Últimos 30 días</button>
+          <button type="button" class="rep-chip flat" id="rep-chip-personalizado" data-periodo="personalizado" th:hidden="${!modulos.contains('REPORTES_COMPLETOS')}" aria-pressed="false" aria-expanded="false" aria-controls="rep-personalizado">Personalizado</button>
         </div>
         <form class="rep-personalizado" id="rep-personalizado" novalidate hidden>
           <label class="admin-field">
@@ -55,6 +55,8 @@
       </div>
     </section>
 
+    <p class="plan-bloqueado rep-bloqueado" th:unless="${modulos.contains('REPORTES_COMPLETOS')}">🔒 Tu plan incluye el reporte de ventas del día. Semanas, meses, lo más vendido y las ventas por persona: <a th:href="@{/admin/plan(modulo='REPORTES_COMPLETOS')}">Disponible en el plan Pro</a></p>
+    <p class="plan-bloqueado rep-bloqueado" th:unless="${modulos.contains('REPORTES_AVANZADOS')}">🔒 Comparación con el período anterior, horarios y exportación a Excel: <a th:href="@{/admin/plan(modulo='REPORTES_AVANZADOS')}">Disponible en el plan Premium</a></p>
     <div id="rep-error" hidden></div>
 
     <section aria-labelledby="rep-titulo-resumen">
@@ -88,7 +90,7 @@
     </section>
 
     <div class="rep-columnas">
-      <section class="admin-card" aria-labelledby="rep-titulo-top">
+      <section class="admin-card" aria-labelledby="rep-titulo-top" th:hidden="${!modulos.contains('REPORTES_COMPLETOS')}">
         <div class="admin-card-head">
           <h2 id="rep-titulo-top">Lo más vendido</h2>
           <div class="rep-segmento" role="group" aria-label="Ordenar productos">
@@ -124,7 +126,7 @@
       </div>
     </div>
 
-    <section class="admin-card" aria-labelledby="rep-titulo-equipo">
+    <section class="admin-card" aria-labelledby="rep-titulo-equipo" th:hidden="${!modulos.contains('REPORTES_COMPLETOS')}">
       <div class="admin-card-head">
         <h2 id="rep-titulo-equipo">Tu equipo</h2>
         <p>Ventas, pedidos cobrados y ticket promedio: de los pedidos de cada persona que ya se pagaron. Pedidos registrados: todos los que tomó. Cobros: cuántos pagos registró.</p>
@@ -132,7 +134,7 @@
       <div class="admin-card-body" id="rep-equipo"></div>
     </section>
 
-    <section class="admin-card" aria-labelledby="rep-titulo-horarios">
+    <section class="admin-card" aria-labelledby="rep-titulo-horarios" th:hidden="${!modulos.contains('REPORTES_AVANZADOS')}">
       <div class="admin-card-head">
         <h2 id="rep-titulo-horarios">Horarios</h2>
         <p>En qué horas y en qué días tienes más pedidos. Te ayuda a organizar a tu personal.</p>
@@ -147,7 +149,7 @@
       </div>
     </section>
 
-    <section class="admin-card" aria-labelledby="rep-titulo-exportar">
+    <section class="admin-card" aria-labelledby="rep-titulo-exportar" th:hidden="${!modulos.contains('REPORTES_AVANZADOS')}">
       <div class="admin-card-head">
         <h2 id="rep-titulo-exportar">Exportar</h2>
         <p>Descarga los datos de estas fechas. Se abren en Excel.</p>

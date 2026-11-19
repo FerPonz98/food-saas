@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Planes — Plataforma</title>
+  <th:block th:replace="~{fragments/head :: branding}"></th:block>
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+  <link rel="stylesheet" th:href="@{/css/superadmin.css}">
+  <script defer th:src="@{/js/security.js}"></script>
+  <script defer th:src="@{/js/admin-shell.js}"></script>
+  <script defer th:src="@{/js/superadmin-planes.js}"></script>
+</head>
+<body class="admin-shell">
+  <div th:replace="~{fragments/superadmin-layout :: barra('planes')}"></div>
+  <main class="admin-main" id="contenido" tabindex="-1">
+    <header class="admin-page-head">
+      <div>
+        <h1>Planes</h1>
+        <p class="admin-page-desc">Precios en bolivianos, límites sugeridos y módulos de cada plan. Los límites no bloquean: solo avisan al negocio y aquí cuando los supera. Los cambios de módulos se aplican al momento a todos los negocios del plan.</p>
+      </div>
+    </header>
+    <div class="sa-planes" id="sa-planes" aria-live="polite"></div>
+  </main>
+</body>
+</html>

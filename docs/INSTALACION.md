@@ -75,6 +75,7 @@ Los Términos y condiciones de uso están en la ruta `/terminos` del sistema y c
 | `LOGIN_MAX_ATTEMPTS`, `LOGIN_BLOCK_MINUTES` | Intentos fallidos permitidos y minutos de bloqueo. | `5`, `15` |
 | `SEED_ADMIN_PASSWORD` | Contraseña temporal de `admin` al crear la base. | `admin123` (solo `dev`) |
 | `SEED_MESERO_PASSWORD`, `SEED_COCINA_PASSWORD` | Contraseñas temporales de `mesero` y `cocina`. En `prod` solo se crean si se definen. | `mesero123`, `cocina123` (solo `dev`) |
+| `SEED_SUPERADMIN_USERNAME`, `SEED_SUPERADMIN_PASSWORD` | Usuario y contraseña temporal del superadministrador de la plataforma (negocios y planes). En `prod` define una contraseña propia; si falta, no se crea y se emite con `RECUPERAR_ACCESO`. | `superadmin`, `superadmin123` (solo `dev`) |
 | `SEED_DEMO_DATA` | Carga un menú de ejemplo si no hay productos. | `true` |
 | `ADMINER_PORT` | Visor web opcional de la base de datos. | `8081` |
 
@@ -114,7 +115,14 @@ pedidos.minegocio.com {
 }
 ```
 
-`FORWARD_HEADERS_STRATEGY=native` solo debe usarse detrás de un proxy de confianza, porque el límite de intentos de ingreso usa la IP que este informa.
+`FORWARD_HEADERS_STRATEGY=native` solo debe usarse detrás de un proxy de confianza, porque el límite de intentos de ingreso y el de avisos desde la carta usan la IP que este informa. Sin esa variable, detrás de un proxy todos los clientes parecen venir de la misma IP y comparten esos límites.
+
+Con HTTPS, además:
+
+- los negocios con plan Pro o Premium pueden **instalar el sistema como app** en los celulares del personal (los navegadores solo lo permiten con HTTPS o en `localhost`);
+- los QR de las mesas apuntan a la dirección con la que entra el administrador. Genera e imprime los carteles entrando por el dominio público (`https://pedidos.minegocio.com`), no por `localhost` ni por una IP local.
+
+Cada negocio tiene su propia dirección de ingreso y de carta: `https://<dominio>/n/<dirección>/login` y `https://<dominio>/n/<dirección>/carta`. El alta de negocios, planes y suscripciones se explica en [Plataforma](PLATAFORMA.md).
 
 ## 7. Respaldos
 
@@ -152,7 +160,9 @@ docker compose start app
 2. Descarga la versión nueva: `git pull`.
 3. Reconstruye y reinicia: `docker compose up -d --build`.
 
-Al arrancar, el sistema agrega solo las tablas y columnas nuevas. Los datos existentes se conservan. Si la versión de los Términos cambió, cada usuario deberá aceptarla en su siguiente ingreso.
+Al arrancar, el sistema aplica las **migraciones de base de datos** pendientes (Flyway) y verifica que el esquema coincida antes de aceptar conexiones; si una migración falla, la aplicación no arranca y la base queda como estaba antes de esa migración. Los datos existentes se conservan. Si la versión de los Términos cambió, cada usuario deberá aceptarla en su siguiente ingreso.
+
+**Al pasar a la versión multiempresa** (planes y superadministrador), todos los datos actuales (productos, pedidos, usuarios, fotos, configuración y actividad) quedan en el negocio **principal**, con plan Premium y todas las funciones. Las direcciones antiguas de la carta (`/carta`, `/mesa/<número>`) redirigen a `/n/principal/…`. Revisa en el registro (`docker compose logs app`) que aparezca «Successfully applied … migrations» y crea la contraseña del superadministrador en su primer ingreso.
 
 ## 9. Recuperar el acceso de un administrador
 
@@ -164,7 +174,7 @@ Desde la carpeta del proyecto, en la computadora o servidor donde está instalad
 docker compose run --rm -e RECUPERAR_ACCESO=admin app
 ```
 
-Cambia `admin` por el usuario administrador que quieras recuperar. El comando arranca una instancia temporal, reactiva la cuenta, emite una **contraseña temporal** y termina. Al final verás:
+Cambia `admin` por el usuario administrador que quieras recuperar. Para el superadministrador de la plataforma usa su usuario (por defecto `superadmin`); si todavía no existe, este comando lo crea. El comando arranca una instancia temporal, reactiva la cuenta, emite una **contraseña temporal** y termina. Al final verás:
 
 ```
 ================================================================
@@ -179,7 +189,8 @@ Cambia `admin` por el usuario administrador que quieras recuperar. El comando ar
 
 - La contraseña temporal solo aparece en esa terminal; no queda en los registros del servidor.
 - Al ingresar con ella, el sistema obliga a crear una contraseña nueva.
-- Si el usuario no existe, se crea como administrador. Si existe pero no es administrador, el comando lo rechaza (las cuentas del personal se restablecen desde **Usuarios**).
+- Si el usuario no existe, se crea como administrador del negocio principal (o como superadministrador, si es el nombre configurado en `SEED_SUPERADMIN_USERNAME` y no hay ninguno). Si existe pero es del personal, el comando lo rechaza (esas cuentas se restablecen desde **Usuarios**).
+- El administrador de otro negocio también puede recuperarse desde la plataforma: **Negocios → Gestionar → Generar contraseña temporal del administrador**.
 - La acción queda registrada en **Actividad** como «Acceso recuperado desde el servidor».
 - Si al ingresar aparece «Demasiados intentos», espera los minutos indicados o reinicia la aplicación con `docker compose restart app`.
 

@@ -1,5 +1,9 @@
 package com.sistema.pedidosCori.controller;
 
+import com.sistema.pedidosCori.models.entity.Modulo;
+
+import com.sistema.pedidosCori.config.RequiereModulo;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -27,8 +31,16 @@ public class AdminPageController {
     @GetMapping("/admin/reportes")
     public String reportes() { return "admin/reportes"; }
 
+    @GetMapping("/admin/plan")
+    public String plan() { return "admin/plan"; }
+
     @GetMapping("/admin/actividad")
+    @RequiereModulo(Modulo.AUDITORIA)
     public String actividad() { return "admin/actividad"; }
+
+    @GetMapping("/admin/carta-qr")
+    @RequiereModulo(Modulo.CARTA_QR)
+    public String cartaQr() { return "admin/carta-qr"; }
 
     @GetMapping("/admin/apariencia")
     public String apariencia() { return "admin/apariencia"; }
