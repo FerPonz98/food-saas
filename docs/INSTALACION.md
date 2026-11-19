@@ -71,7 +71,8 @@ Los Términos y condiciones de uso están en la ruta `/terminos` del sistema y c
 | `APP_PORT` | Puerto de la aplicación. | `8080` |
 | `SPRING_PROFILES_ACTIVE` | `dev` para pruebas, `prod` para producción. | `dev` |
 | `SESSION_COOKIE_SECURE` | `true` solo si se accede por HTTPS. | `false` |
-| `FORWARD_HEADERS_STRATEGY` | `native` si hay un proxy inverso con HTTPS delante. | `none` |
+| `FORWARD_HEADERS_STRATEGY` | `native` si hay un proxy inverso con HTTPS delante (en Railway se activa solo). | `none` |
+| `APP_BEHIND_HTTPS_PROXY` | `true` activa los valores para proxy HTTPS; `false` desactiva la detección de Railway. | detección automática |
 | `LOGIN_MAX_ATTEMPTS`, `LOGIN_BLOCK_MINUTES` | Intentos fallidos permitidos y minutos de bloqueo. | `5`, `15` |
 | `SEED_ADMIN_PASSWORD` | Contraseña temporal de `admin` al crear la base. | `admin123` (solo `dev`) |
 | `SEED_MESERO_PASSWORD`, `SEED_COCINA_PASSWORD` | Contraseñas temporales de `mesero` y `cocina`. En `prod` solo se crean si se definen. | `mesero123`, `cocina123` (solo `dev`) |
@@ -114,6 +115,14 @@ pedidos.minegocio.com {
     reverse_proxy localhost:8080
 }
 ```
+
+### Railway y otros proxies HTTPS
+
+En **Railway** no hace falta configurar nada: el sistema detecta la plataforma y activa por su cuenta `FORWARD_HEADERS_STRATEGY=native` y `SESSION_COOKIE_SECURE=true` (si defines esas variables, tu valor tiene prioridad). Para otro proxy HTTPS gestionado puedes declarar `APP_BEHIND_HTTPS_PROXY=true` en lugar de las dos variables; `APP_BEHIND_HTTPS_PROXY=false` desactiva la detección.
+
+Todas las redirecciones del sistema (ingreso, salida, acceso denegado) usan rutas relativas, así el navegador se queda siempre en el mismo origen con el que entró —dominio de Railway, dominio propio o `localhost`— y la política de seguridad de contenido (`form-action 'self'`) nunca bloquea el ingreso. No hay que registrar dominios en ninguna parte.
+
+Si el proxy no llega desde una red privada (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 100.64.0.0/10, fc00::/7 y similares), indica sus direcciones con `SERVER_TOMCAT_REMOTEIP_INTERNAL_PROXIES` (expresión regular); de lo contrario el sistema ignora sus cabeceras y no sabrá que la conexión es HTTPS.
 
 `FORWARD_HEADERS_STRATEGY=native` solo debe usarse detrás de un proxy de confianza, porque el límite de intentos de ingreso y el de avisos desde la carta usan la IP que este informa. Sin esa variable, detrás de un proxy todos los clientes parecen venir de la misma IP y comparten esos límites.
 
@@ -212,6 +221,7 @@ Abre `http://localhost:8081`, servidor `db`, con el usuario y la contraseña de 
 | El puerto 8080 está ocupado | Define otro en `.env`, por ejemplo `APP_PORT=8085`, y vuelve a ejecutar `docker compose up -d`. |
 | No abre en el celular | Misma Wi‑Fi, IP correcta y puerto permitido en el firewall. |
 | El ingreso vuelve siempre a la pantalla de ingreso | Si usas `http://`, `SESSION_COOKIE_SECURE` debe ser `false`. |
+| El navegador dice que «form-action» bloqueó el envío del formulario | Actualiza a esta versión: las redirecciones ya son relativas. Detrás de un proxy propio, revisa `FORWARD_HEADERS_STRATEGY=native` (sección 6). |
 | «Demasiados intentos» | Espera los minutos indicados (`LOGIN_BLOCK_MINUTES`). |
 | Alguien olvidó su contraseña | Un administrador le asigna una temporal en **Usuarios → Contraseña**. |
 | Ningún administrador puede entrar | Sección 9. |

@@ -25,11 +25,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
@@ -95,6 +97,7 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginPage("/login")
+                .withObjectPostProcessor(redireccionLoginRelativa())
                 .successHandler((req, res, authentication) -> {
                     attempts.reset(req.getParameter("username"), req.getRemoteAddr());
                     String username = authentication.getName();
@@ -156,15 +159,31 @@ public class SecurityConfig {
                     (req, res, e) -> apiError(res, HttpStatus.UNAUTHORIZED, "Debes iniciar sesión", "NO_AUTENTICADO"),
                     PathPatternRequestMatcher.withDefaults().matcher("/api/**"))
                 .accessDeniedHandler((req, res, e) -> {
-                    if (req.getRequestURI().startsWith("/api/"))
+                    if (req.getRequestURI().startsWith(req.getContextPath() + "/api/"))
                         apiError(res, HttpStatus.FORBIDDEN, "No tienes permiso para esta operación", "PROHIBIDO");
-                    else res.sendRedirect("/?denegado");
+                    else res.sendRedirect(req.getContextPath() + "/?denegado");
                 })
             );
         http.addFilterBefore(new LoginThrottleFilter(attempts), UsernamePasswordAuthenticationFilter.class);
         http.addFilterAfter(new CuentaPendienteFilter(), AuthorizationFilter.class);
         http.addFilterAfter(new NegocioFiltro(modulos, usuarioDao), CuentaPendienteFilter.class);
         return http.build();
+    }
+
+    /**
+     * Hace relativa la redirección a la pantalla de ingreso. Por defecto Spring Security la arma
+     * absoluta con el esquema que ve el servidor, que detrás de un proxy TLS es {@code http://}:
+     * el navegador la bloquearía (CSP form-action) o degradaría la conexión a HTTP. Se ajusta el
+     * punto de entrada propio del formulario para conservar su negociación de contenido.
+     */
+    static ObjectPostProcessor<LoginUrlAuthenticationEntryPoint> redireccionLoginRelativa() {
+        return new ObjectPostProcessor<>() {
+            @Override
+            public <O extends LoginUrlAuthenticationEntryPoint> O postProcess(O entryPoint) {
+                entryPoint.setFavorRelativeUris(true);
+                return entryPoint;
+            }
+        };
     }
 
     static void redirectLoginError(HttpServletRequest req, HttpServletResponse res, long minutes) throws IOException {
