@@ -53,7 +53,7 @@
     <form id="sa-form-nuevo" novalidate>
       <div class="sa-dialogo-cab">
         <h2 id="sa-nuevo-titulo">Nuevo negocio</h2>
-        <button type="button" class="sa-cerrar flat" data-cerrar aria-label="Cerrar">✕</button>
+        <button type="button" class="sa-cerrar flat" data-cerrar aria-label="Cerrar"><svg th:replace="~{fragments/icono :: i('x')}"></svg></button>
       </div>
       <div class="sa-dialogo-cuerpo admin-form-grid sa-form-dos">
         <div class="admin-field"><label for="n-nombre">Nombre del negocio</label><input class="field" id="n-nombre" name="nombre" maxlength="120" required></div>
@@ -82,7 +82,7 @@
   <dialog class="sa-dialogo" id="sa-dlg-acceso" aria-labelledby="sa-acceso-titulo">
     <div class="sa-dialogo-cab">
       <h2 id="sa-acceso-titulo">Acceso del administrador</h2>
-      <button type="button" class="sa-cerrar flat" data-cerrar aria-label="Cerrar">✕</button>
+      <button type="button" class="sa-cerrar flat" data-cerrar aria-label="Cerrar"><svg th:replace="~{fragments/icono :: i('x')}"></svg></button>
     </div>
     <div class="sa-dialogo-cuerpo">
       <p>Entrega estos datos al dueño del negocio. La contraseña es temporal: al ingresar deberá crear una propia. <strong>No se vuelve a mostrar.</strong></p>
@@ -101,7 +101,7 @@
   <dialog class="sa-dialogo sa-dialogo-ancho" id="sa-dlg-negocio" aria-labelledby="sa-negocio-titulo">
     <div class="sa-dialogo-cab">
       <h2 id="sa-negocio-titulo">Negocio</h2>
-      <button type="button" class="sa-cerrar flat" data-cerrar aria-label="Cerrar">✕</button>
+      <button type="button" class="sa-cerrar flat" data-cerrar aria-label="Cerrar"><svg th:replace="~{fragments/icono :: i('x')}"></svg></button>
     </div>
     <div class="sa-pestanas" role="tablist" aria-label="Secciones del negocio">
       <button type="button" role="tab" class="flat" data-pestana="suscripcion" aria-selected="true">Suscripción</button>

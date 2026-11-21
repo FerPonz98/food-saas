@@ -127,7 +127,9 @@
     function vacio(el, opciones = {}) {
         const caja = crear('div', 'admin-empty');
         if (opciones.icono) {
-            const icono = crear('div', 'admin-empty-icono', opciones.icono);
+            const svg = window.Icono?.desdeEmoji(opciones.icono);
+            const icono = crear('div', 'admin-empty-icono', svg ? null : opciones.icono);
+            if (svg) icono.append(window.Icono.crear(svg));
             icono.setAttribute('aria-hidden', 'true');
             caja.append(icono);
         }

@@ -47,7 +47,7 @@
         <section class="admin-card" aria-labelledby="titulo-colores">
           <div class="admin-card-head">
             <h2 id="titulo-colores">Colores</h2>
-            <p class="admin-help plan-bloqueado" th:unless="${modulos.contains('APARIENCIA_AVANZADA')}">🔒 Los colores y el eslogan se personalizan desde el plan Pro. <a th:href="@{/admin/plan(modulo='APARIENCIA_AVANZADA')}">Ver mi plan</a></p>
+            <p class="admin-help plan-bloqueado" th:unless="${modulos.contains('APARIENCIA_AVANZADA')}"><svg th:replace="~{fragments/icono :: i('lock')}"></svg> Los colores y el eslogan se personalizan desde el plan Pro. <a th:href="@{/admin/plan(modulo='APARIENCIA_AVANZADA')}">Ver mi plan</a></p>
             <p>Toca un color para cambiarlo. A la derecha ves cómo queda.</p>
           </div>
           <div class="admin-card-body">

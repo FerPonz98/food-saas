@@ -122,10 +122,10 @@ public class PlataformaService {
     public void crearPlanesPredeterminados() {
         if (planes.count() > 0) return;
         Set<Modulo> pro = EnumSet.of(Modulo.APARIENCIA_AVANZADA, Modulo.APP_INSTALABLE, Modulo.CARTA_QR, Modulo.LLAMADOS,
-            Modulo.PEDIDOS_QR, Modulo.DIVISION_CUENTA, Modulo.REPORTES_COMPLETOS);
+            Modulo.PEDIDOS_QR, Modulo.DIVISION_CUENTA, Modulo.REPORTES_COMPLETOS, Modulo.DISPONIBILIDAD);
         Set<Modulo> premium = EnumSet.copyOf(pro);
         premium.addAll(EnumSet.of(Modulo.REPORTES_AVANZADOS, Modulo.AUDITORIA, Modulo.VARIOS_ADMINISTRADORES,
-            Modulo.CARTA_SIN_MARCA));
+            Modulo.CARTA_SIN_MARCA, Modulo.FOTOS_ANIMADAS));
         planes.save(plan(Plan.NORMAL, "Normal", "Empieza a tomar pedidos digitales", 1, 650, 6500, 400, 10, 50, 3,
             EnumSet.noneOf(Modulo.class)));
         planes.save(plan(Plan.PRO, "Pro", "Tu restaurante digital completo", 2, 1200, 12000, 800, 30, 200, null, pro));
@@ -273,6 +273,8 @@ public class PlataformaService {
             if (n.getCiclo() != ciclo) cambios.add("Ciclo " + n.getCiclo() + " → " + ciclo);
             if (!Objects.equals(n.getVenceEn(), s.venceEn())) cambios.add("Vence " + Objects.toString(s.venceEn(), "sin fecha"));
             n.setPlan(plan);
+            if (estado != EstadoSuscripcion.SUSPENDIDO) n.setMotivoSuspension(null);
+            else if (n.getEstado() != EstadoSuscripcion.SUSPENDIDO) n.setMotivoSuspension(CobranzaService.SUSPENSION_MANUAL);
             n.setEstado(estado);
             n.setCiclo(ciclo);
             if (s.inicioSuscripcion() != null) n.setInicioSuscripcion(s.inicioSuscripcion());

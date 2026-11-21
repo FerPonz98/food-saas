@@ -35,6 +35,7 @@ public class PlataformaInicial implements CommandLineRunner {
     private final INegocioDao negocios;
     private final IUsuarioDao usuarios;
     private final ConfiguracionNegocioService configuracion;
+    private final com.sistema.pedidosCori.service.CobranzaService cobranza;
     private final EjecutorNegocio ejecutor;
     private final PasswordEncoder passwordEncoder;
     private final Environment environment;
@@ -57,6 +58,8 @@ public class PlataformaInicial implements CommandLineRunner {
         });
         for (Negocio n : ejecutor.en(NegocioActual.RAIZ, () -> negocios.findAll()))
             configuracion.crearPara(n.getId(), n.getNombre());
+        cobranza.inicializar();
+        cobranza.ejecutarProgramado();
     }
 
     public Long negocioPrincipal() {

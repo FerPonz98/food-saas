@@ -45,6 +45,26 @@
 
     window.Tema = { preferencia, establecer, modo: () => modoEfectivo(preferencia()) };
 
+    const hojaTema = document.querySelector('link[href*="css/theme.css"]');
+    const SPRITE = (hojaTema ? hojaTema.getAttribute('href') : '/css/theme.css').replace(/css\/theme\.css.*$/, 'img/iconos.svg');
+    const SVG = 'http://www.w3.org/2000/svg';
+    const EMOJI_SISTEMA = {
+        '⚠️': 'alert', '📡': 'refresh', '🍽️': 'utensils', '👥': 'users', '🗂️': 'grid', '🛒': 'bag',
+        '🔍': 'search', '📉': 'chart', '💳': 'card', '🪑': 'store', '🕒': 'clock', '📆': 'clock',
+        '🏪': 'building', '❔': 'info', '📝': 'pencil', '🔒': 'lock', '🧾': 'receipt', '🔔': 'bell'
+    };
+    function icono(nombre, clase) {
+        const svg = document.createElementNS(SVG, 'svg');
+        svg.setAttribute('class', clase ? `ico ${clase}` : 'ico');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('focusable', 'false');
+        const uso = document.createElementNS(SVG, 'use');
+        uso.setAttribute('href', `${SPRITE}#i-${nombre}`);
+        svg.append(uso);
+        return svg;
+    }
+    window.Icono = { crear: icono, desdeEmoji: emoji => EMOJI_SISTEMA[emoji] || null, sprite: SPRITE };
+
     document.addEventListener('click', e => {
         const opcion = e.target.closest('[data-tema]');
         if (opcion) {

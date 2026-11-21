@@ -1,5 +1,7 @@
 package com.sistema.pedidosCori.controller;
 
+import com.sistema.pedidosCori.service.DisponibilidadService;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,5 +67,6 @@ public class SesionAdvice {
         model.addAttribute("sesionRolEtiqueta", rolEtiqueta);
         model.addAttribute("sesionVistas", vistas);
         model.addAttribute("sesionRuta", request.getRequestURI().substring(request.getContextPath().length()));
+        model.addAttribute("puedeGestionarDisponibilidad", roles.contains(DisponibilidadService.PERMISO));
     }
 }

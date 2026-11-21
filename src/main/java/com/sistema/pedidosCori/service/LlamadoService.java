@@ -44,9 +44,10 @@ public class LlamadoService {
                 l.getCreadoEn(), l.getUltimoAvisoEn(), l.getConfirmadoEn(), l.getConfirmadoPor());
         }
     }
-    public record EstadoCliente(String motivo, String metodoPago, LocalDateTime desde, boolean confirmado) {
+    public record EstadoCliente(String motivo, String metodoPago, LocalDateTime desde, boolean confirmado, long esperaSegundos) {
         static EstadoCliente de(LlamadoMesa l) {
-            return new EstadoCliente(l.getMotivo(), l.getMetodoPago(), l.getCreadoEn(), l.getConfirmadoEn() != null);
+            long espera = Math.max(0, Duration.between(l.getCreadoEn(), LocalDateTime.now()).getSeconds());
+            return new EstadoCliente(l.getMotivo(), l.getMetodoPago(), l.getCreadoEn(), l.getConfirmadoEn() != null, espera);
         }
     }
 

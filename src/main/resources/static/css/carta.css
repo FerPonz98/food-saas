@@ -3,23 +3,26 @@
 .carta-con-barra .ctl-estado-pagina { padding-bottom: 140px; }
 
 .carta-barra {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000;
-  display: grid; gap: var(--space-2);
-  padding: var(--space-2) var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom));
-  background: var(--surface-card); color: var(--text-main);
-  border-top: 1px solid var(--border-main); box-shadow: var(--shadow-overlay);
+  position: fixed; left: var(--space-3); right: var(--space-3); bottom: calc(var(--space-3) + env(safe-area-inset-bottom)); z-index: 1000;
+  display: grid; gap: var(--space-2); max-width: 600px; margin: 0 auto;
+  padding: var(--space-2) var(--space-2) var(--space-2);
+  background: var(--surface-glass); color: var(--text-main);
+  border: 1px solid var(--border-main); border-radius: var(--radius-xl); box-shadow: var(--shadow-overlay);
+  backdrop-filter: saturate(1.6) blur(16px); -webkit-backdrop-filter: saturate(1.6) blur(16px);
+  animation: ui-rise 420ms var(--ease-out);
 }
-.carta-mesa { justify-self: center; padding: 2px var(--space-3); border-radius: 999px; background: var(--brand-primary-soft); color: var(--brand-primary-text); font-size: .8rem; font-weight: 800; letter-spacing: .02em; }
+.carta-mesa { justify-self: center; padding: 2px var(--space-3); border-radius: var(--radius-pill); background: var(--brand-primary-soft); color: var(--brand-primary-text); font-size: .8rem; font-weight: 800; letter-spacing: .02em; }
 .carta-acciones { display: flex; gap: var(--space-2); max-width: 560px; width: 100%; margin: 0 auto; }
 .carta-accion {
   flex: 1; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   min-height: 60px; margin: 0; padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--border-main); border-radius: var(--radius-md);
+  border: 1px solid transparent; border-radius: var(--radius-lg);
   background: var(--surface-raised); color: var(--text-main);
-  font: inherit; font-size: .82rem; font-weight: 700; line-height: 1.15; text-align: center; cursor: pointer;
+  font: inherit; font-size: .8rem; font-weight: 700; line-height: 1.15; text-align: center; cursor: pointer;
 }
-.carta-accion-icono { font-size: 1.35rem; line-height: 1; }
-.carta-accion-principal { background: var(--action-primary); border-color: var(--action-primary); color: var(--action-primary-on); }
+.carta-accion-icono { display: inline-grid; place-items: center; line-height: 1; }
+.carta-accion-icono .ico { width: 22px; height: 22px; }
+.carta-accion-principal { background: var(--action-primary); border-color: var(--action-primary); color: var(--action-primary-on); box-shadow: var(--elev-2); }
 .carta-accion:disabled { opacity: .6; cursor: progress; }
 .carta-accion:focus-visible, .carta-pago:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 @media (hover: hover) {
@@ -29,7 +32,7 @@
 
 .carta-estado {
   position: fixed; max-height: 40vh; overflow-y: auto; left: var(--space-3); right: var(--space-3); z-index: 1001;
-  bottom: calc(118px + env(safe-area-inset-bottom));
+  bottom: calc(132px + env(safe-area-inset-bottom));
   display: grid; gap: var(--space-1); max-width: 560px; margin: 0 auto;
   padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
   border: 1px solid var(--status-success-border); background: var(--status-success-soft); color: var(--status-success-text);
@@ -51,10 +54,11 @@
 
 .carta-dialogo {
   width: min(420px, calc(100vw - 32px)); margin: auto; padding: var(--space-5);
-  border: 1px solid var(--border-main); border-radius: var(--radius-lg);
+  border: 1px solid var(--border-main); border-radius: var(--radius-xl);
   background: var(--surface-card); color: var(--text-main); box-shadow: var(--shadow-overlay);
 }
-.carta-dialogo::backdrop { background: var(--overlay-backdrop); }
+.carta-dialogo[open] { animation: ui-pop-in var(--dur-base) var(--ease-out); }
+.carta-dialogo::backdrop { background: var(--overlay-backdrop); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
 .carta-dialogo h2 { margin: 0 0 var(--space-2); font-size: 1.25rem; }
 .carta-dialogo p { margin: 0 0 var(--space-4); color: var(--text-muted); line-height: 1.45; }
 .carta-dialogo-botones { display: flex; gap: var(--space-2); justify-content: flex-end; }
@@ -67,7 +71,8 @@
   border: 1px solid var(--border-main); border-radius: var(--radius-md); background: var(--surface-raised); color: var(--text-main);
   font: inherit; font-size: 1.05rem; font-weight: 700; text-align: left; cursor: pointer;
 }
-.carta-pago span { font-size: 1.4rem; }
+.carta-pago-ico { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--surface-card); color: var(--brand-primary-text); }
+.carta-pago-ico .ico { width: 22px; height: 22px; }
 @media (hover: hover) { .carta-pago:hover { border-color: var(--border-strong); } }
 
 .carta-wifi { display: grid; gap: var(--space-3); margin: var(--space-3) 0 var(--space-4); }
@@ -88,7 +93,7 @@
 }
 
 .carta-pie { padding: var(--space-4) var(--space-3); color: var(--text-muted); font-size: .78rem; text-align: center; }
-.carta-con-barra .carta-pie { padding-bottom: calc(140px + env(safe-area-inset-bottom)); }
+.carta-con-barra .carta-pie { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
 
 .carta-tamanos { display: grid; gap: var(--space-2); margin: 0 0 var(--space-4); padding: 0; border: 0; }
 .carta-tamanos[hidden] { display: none; }
@@ -116,3 +121,81 @@
 .carta-carrito-precio { font-weight: 800; white-space: nowrap; }
 .carta-carrito-quitar { min-height: 40px; padding: 0 var(--space-3); }
 .carta-dialogo .carta-carrito-total { color: var(--text-main); font-size: 1.05rem; }
+
+.carta-acciones { flex-wrap: wrap; }
+.carta-accion#btn-carrito { order: -1; flex: 1 1 100%; flex-direction: row; justify-content: flex-start; gap: var(--space-3); min-height: 56px; padding: 0 var(--space-4) 0 var(--space-3); font-size: 1rem; }
+.carta-carrito-ico { position: relative; }
+.carta-carrito-cantidad { position: absolute; top: -8px; right: -10px; display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: var(--radius-pill); background: var(--action-accent); color: var(--action-accent-on); font-size: .7rem; font-weight: 800; box-shadow: 0 0 0 2px var(--action-primary); }
+.carta-carrito-etiqueta { flex: 1; text-align: left; font-weight: 750; }
+.carta-carrito-boton-total { font-weight: 800; font-variant-numeric: tabular-nums; }
+.carta-rebote { animation: carta-rebote 420ms var(--ease-spring); }
+@keyframes carta-rebote { 0% { transform: scale(1); } 35% { transform: scale(1.05); } 100% { transform: scale(1); } }
+.carta-con-pedido .ctl .ctl-cuerpo, .carta-con-pedido .carta-pie { padding-bottom: calc(210px + env(safe-area-inset-bottom)); }
+.carta-con-pedido .carta-estado { bottom: calc(196px + env(safe-area-inset-bottom)); }
+
+.carta-aviso { display: flex; align-items: center; gap: var(--space-3); text-align: left; }
+.carta-aviso-texto { flex: 1; }
+.carta-aviso-accion { flex: none; min-height: 36px; margin: 0; padding: 0 var(--space-3); border: 1px solid currentColor; border-radius: var(--radius-sm); background: transparent; color: inherit; font: inherit; font-size: .85rem; font-weight: 800; cursor: pointer; }
+
+.carta-estado { gap: 0; padding: var(--space-1) var(--space-3); background: var(--surface-card); border-color: var(--border-main); color: var(--text-main); border-radius: var(--radius-lg); }
+.carta-estado-fila { flex-wrap: nowrap; align-items: flex-start; justify-content: flex-start; gap: var(--space-3); padding: var(--space-3) 0; }
+.carta-estado-fila + .carta-estado-fila { border-top: 1px solid var(--border-main); }
+.carta-estado-ico { display: inline-grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--status-info-soft); color: var(--status-info-text); }
+.carta-estado-ico .ico { width: 18px; height: 18px; }
+.carta-estado-ok .carta-estado-ico { background: var(--status-success-soft); color: var(--status-success-text); }
+.carta-estado-error .carta-estado-ico { background: var(--status-error-soft); color: var(--status-error-text); }
+.carta-estado-espera .carta-estado-ico { background: var(--status-warning-soft); color: var(--status-warning-text); }
+.carta-estado-espera .carta-estado-ico .ico { animation: carta-latido 1.6s ease-in-out infinite; }
+@keyframes carta-latido { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+.carta-estado-cuerpo { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.carta-estado-texto { font-weight: 750; }
+.carta-estado-hora { color: var(--text-muted); font-size: .8rem; }
+.carta-estado-error .carta-estado-texto { color: var(--status-error-text); }
+.carta-estado-espera .carta-estado-texto::after { content: none; }
+.carta-estado-cerrar { flex: none; color: var(--text-muted); }
+.carta-estado-cerrar .ico { width: 16px; height: 16px; }
+.carta-progreso { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-1); margin: var(--space-2) 0 0; padding: 0; list-style: none; counter-reset: paso; }
+.carta-progreso li { position: relative; padding-top: 10px; color: var(--text-muted); font-size: .7rem; font-weight: 650; line-height: 1.2; }
+.carta-progreso li::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; border-radius: var(--radius-pill); background: var(--surface-sunken); }
+.carta-progreso li.hecho { color: var(--status-success-text); }
+.carta-progreso li.hecho::before { background: var(--status-success); }
+.carta-progreso li.actual { color: var(--text-main); }
+.carta-progreso li.actual::before { background: linear-gradient(90deg, var(--status-warning) 40%, var(--surface-sunken) 40%); background-size: 250% 100%; animation: carta-avance 1.6s linear infinite; }
+@keyframes carta-avance { from { background-position: 100% 0; } to { background-position: 0 0; } }
+
+.carta-carrito { gap: 0; }
+.carta-carrito-item { align-items: flex-start; gap: var(--space-3); padding: var(--space-3) 0; }
+.carta-carrito-unitario { color: var(--text-muted); font-size: .8rem; }
+.carta-carrito-der { display: grid; justify-items: end; gap: var(--space-2); flex: none; }
+.carta-carrito-paso { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: var(--radius-pill); background: var(--surface-raised); }
+.carta-paso-btn { display: inline-grid; place-items: center; width: 40px; height: 40px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: var(--surface-card); color: var(--text-main); box-shadow: var(--elev-1); cursor: pointer; }
+.carta-paso-btn .ico { width: 18px; height: 18px; }
+.carta-paso-btn:disabled { opacity: .4; cursor: not-allowed; }
+.carta-paso-num { min-width: 2ch; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
+.carta-carrito-total { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 var(--space-4); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--surface-raised); font-weight: 700; }
+.carta-carrito-total strong { font-size: 1.25rem; font-weight: 800; color: var(--brand-primary-text); font-variant-numeric: tabular-nums; }
+.carta-vacia-icono { background: var(--brand-primary-soft); color: var(--brand-primary-text); }
+.carta-vacia-icono .ico { width: 36px; height: 36px; }
+@media (max-width: 380px) { .carta-carrito-item { flex-wrap: wrap; } .carta-carrito-der { width: 100%; grid-auto-flow: column; justify-content: space-between; align-items: center; } }
+#agregar-confirmar { flex: 1 1 auto; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#agregar-confirmar span { display: inline; }
+.carta-dialogo-botones > * { min-width: 0; padding-inline: var(--space-4); }
+#agregar-confirmar { gap: 6px; }
+
+.carta-pila { position: fixed; left: var(--space-3); right: var(--space-3); bottom: calc(var(--carta-barra-alto) + var(--space-5) + env(safe-area-inset-bottom)); z-index: 1001; display: flex; flex-direction: column; align-items: center; gap: var(--space-2); max-width: 600px; margin: 0 auto; pointer-events: none; }
+.carta-pila > * { pointer-events: auto; }
+.carta-pila .carta-estado, .carta-con-pedido .carta-pila .carta-estado { position: static; left: auto; right: auto; bottom: auto; width: 100%; max-height: 34vh; margin: 0; }
+.carta-llamados { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); animation: ui-rise var(--dur-base) var(--ease-out); }
+.carta-llamados[hidden] { display: none; }
+.carta-llamado { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: 4px var(--space-3) 4px 4px; border: 1px solid var(--status-warning-border); border-radius: var(--radius-pill); background: var(--surface-glass); color: var(--text-main); font-size: .85rem; font-weight: 700; box-shadow: var(--elev-2); backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px); }
+.carta-llamado-ico { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--status-warning-soft); color: var(--status-warning-text); }
+.carta-llamado-ico .ico { width: 16px; height: 16px; animation: carta-campana 2.4s ease-in-out infinite; transform-origin: 50% 10%; }
+.carta-llamado-reloj { padding-left: var(--space-2); border-left: 1px solid var(--border-main); color: var(--text-muted); font-variant-numeric: tabular-nums; font-weight: 750; }
+.carta-llamado-ok { border-color: var(--status-success-border); }
+.carta-llamado-ok .carta-llamado-ico { background: var(--status-success-soft); color: var(--status-success-text); }
+.carta-llamado-ok .carta-llamado-ico .ico { animation: carta-camino 1.2s ease-in-out infinite; }
+.carta-llamado-cambio { animation: carta-rebote 520ms var(--ease-spring); }
+@keyframes carta-campana { 0%, 70%, 100% { transform: rotate(0); } 75% { transform: rotate(14deg); } 85% { transform: rotate(-12deg); } 95% { transform: rotate(6deg); } }
+@keyframes carta-camino { 0%, 100% { transform: translateX(-2px); } 50% { transform: translateX(2px); } }
+.carta-accion-activa { background: var(--status-warning-soft); color: var(--status-warning-text); }
+.carta-accion-activa[aria-disabled="true"] { cursor: default; }

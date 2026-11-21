@@ -43,6 +43,7 @@ public class PlatoImagenController {
         String extension = switch (imagen.mimeType()) {
             case "image/jpeg" -> ".jpg";
             case "image/webp" -> ".webp";
+            case "image/gif" -> ".gif";
             default -> ".png";
         };
         headers.setContentDisposition(ContentDisposition.inline().filename("producto-" + id + extension).build());

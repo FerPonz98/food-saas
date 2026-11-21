@@ -151,6 +151,45 @@ class CartaQrTests {
     }
 
     @Test
+    void customerCallGoesThroughPendingAcceptedAndAttended() throws Exception {
+        String api = "/api/publico/principal/mesa/6/llamados";
+        mvc().perform(post(api).contentType(MediaType.APPLICATION_JSON).content(llamado("MESERO", null)))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.confirmado").value(false))
+            .andExpect(jsonPath("$.esperaSegundos").isNumber());
+
+        var guardado = llamadoDao.findAll().get(0);
+        guardado.setCreadoEn(guardado.getCreadoEn().minusSeconds(95));
+        llamadoDao.save(guardado);
+        mvc().perform(get(api)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].motivo").value("MESERO"))
+            .andExpect(jsonPath("$[0].confirmado").value(false))
+            .andExpect(jsonPath("$[0].esperaSegundos").value(org.hamcrest.Matchers.greaterThanOrEqualTo(95)));
+
+        mvc().perform(put("/api/llamados/" + guardado.getId() + "/confirmar").with(mesero()).with(csrf())).andExpect(status().isOk());
+        mvc().perform(get(api)).andExpect(jsonPath("$.length()").value(1)).andExpect(jsonPath("$[0].confirmado").value(true));
+
+        mvc().perform(post(api).contentType(MediaType.APPLICATION_JSON).content(llamado("MESERO", null)))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.confirmado").value(true));
+        assertThat(llamadoDao.count()).isEqualTo(1);
+
+        mvc().perform(put("/api/llamados/" + guardado.getId() + "/atender").with(mesero()).with(csrf())).andExpect(status().isOk());
+        mvc().perform(get(api)).andExpect(jsonPath("$.length()").value(0));
+
+        mvc().perform(post(api).contentType(MediaType.APPLICATION_JSON).content(llamado("MESERO", null)))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.confirmado").value(false));
+        assertThat(llamadoDao.count()).isEqualTo(2);
+    }
+
+    @Test
+    void tablePageHasCallIndicatorSeparatedFromOrderStatus() throws Exception {
+        mvc().perform(get("/n/principal/mesa/6")).andExpect(status().isOk())
+            .andExpect(content().string(containsString("id=\"carta-llamados\"")))
+            .andExpect(content().string(containsString("id=\"carta-estado\"")))
+            .andExpect(content().string(containsString("data-etiqueta")));
+    }
+
+    @Test
     void invalidCallsAreRejected() throws Exception {
         mvc().perform(post("/api/publico/principal/mesa/4/llamados").contentType(MediaType.APPLICATION_JSON).content(llamado("PIZZA", null)))
             .andExpect(status().isBadRequest());

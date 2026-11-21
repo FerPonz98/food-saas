@@ -32,13 +32,13 @@
       <div class="admin-toolbar">
         <label class="admin-field admin-buscar">
           <span class="visually-hidden">Buscar producto</span>
-          <input type="search" class="field" id="prod-buscar" placeholder="🔍 Buscar por nombre o descripción" autocomplete="off" spellcheck="false">
+          <input type="search" class="field" id="prod-buscar" placeholder="Buscar por nombre o descripción" autocomplete="off" spellcheck="false">
         </label>
         <label class="admin-field prod-filtro-foto">
           <span class="visually-hidden">Filtrar por foto</span>
           <select class="field" id="prod-filtro-foto">
             <option value="">Con y sin foto</option>
-            <option value="con">📷 Con foto</option>
+            <option value="con">Con foto</option>
             <option value="sin">Sin foto</option>
           </select>
         </label>
@@ -56,7 +56,7 @@
     <form class="prod-form" novalidate>
       <div class="prod-dialog-head">
         <h2 id="prod-dialogo-titulo">Agregar producto</h2>
-        <button type="button" class="prod-cerrar flat" data-cerrar aria-label="Cerrar">✕</button>
+        <button type="button" class="prod-cerrar flat" data-cerrar aria-label="Cerrar"><svg th:replace="~{fragments/icono :: i('x')}"></svg></button>
       </div>
       <div class="prod-dialog-body" data-cuerpo>
         <p class="prod-dialog-intro" data-intro>Completa los datos de lo que vendes. Solo el nombre, la categoría y el precio son obligatorios.</p>
@@ -74,9 +74,10 @@
             </div>
             <div class="prod-foto-controles">
               <p class="admin-help">Una buena foto ayuda a tu personal a reconocer el producto. La achicamos automáticamente para que cargue rápido.</p>
+              <p class="admin-help prod-gif-ayuda" th:if="${modulos.contains('FOTOS_ANIMADAS')}">Tu plan incluye <strong>fotos animadas</strong>: sube un GIF (hasta 3 MB) y el plato se moverá en la carta.</p>
               <div class="prod-foto-botones">
-                <button type="button" class="button-secondary" data-foto-camara><span aria-hidden="true">📷</span> Tomar foto</button>
-                <button type="button" class="button-secondary" data-foto-galeria><span aria-hidden="true">🖼️</span> Elegir foto</button>
+                <button type="button" class="button-secondary" data-foto-camara><svg th:replace="~{fragments/icono :: i('image')}"></svg> Tomar foto</button>
+                <button type="button" class="button-secondary" data-foto-galeria><svg th:replace="~{fragments/icono :: i('image')}"></svg> Elegir foto</button>
                 <button type="button" class="button-secondary prod-btn-peligro" data-foto-quitar hidden>Quitar foto</button>
                 <button type="button" class="button-secondary" data-foto-deshacer hidden>Deshacer</button>
               </div>

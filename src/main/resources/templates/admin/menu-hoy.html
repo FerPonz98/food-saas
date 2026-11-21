@@ -34,7 +34,7 @@
       <div class="tb-row">
         <div class="tb-search">
           <label for="buscar" class="visually-hidden">Buscar producto por nombre</label>
-          <span class="tb-search-ico" aria-hidden="true">🔍</span>
+          <span class="tb-search-ico"><svg th:replace="~{fragments/icono :: i('search')}"></svg></span>
           <input type="search" id="buscar" placeholder="Buscar producto…" autocomplete="off" spellcheck="false">
         </div>
         <span class="tb-resumen" id="tb-resumen" aria-live="polite">0 activos hoy</span>

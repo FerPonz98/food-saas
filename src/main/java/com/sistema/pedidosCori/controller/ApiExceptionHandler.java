@@ -65,6 +65,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> errorInterno(Exception ex) {
+        org.slf4j.LoggerFactory.getLogger(ApiExceptionHandler.class).error("Error no controlado en la API", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(Map.of("mensaje", "Error interno del servidor", "codigo", "ERROR_INTERNO"));
     }

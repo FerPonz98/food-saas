@@ -1,5 +1,7 @@
 package com.sistema.pedidosCori.config;
 
+import com.sistema.pedidosCori.service.DisponibilidadService;
+
 import com.sistema.pedidosCori.models.dao.IUsuarioDao;
 import com.sistema.pedidosCori.models.entity.AccionAuditoria;
 import com.sistema.pedidosCori.models.entity.RegistroAuditoria;
@@ -87,7 +89,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/platos/**", "/api/presentaciones/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/pedidos/*/estado").hasAnyRole("ADMIN", "COCINA", "MESERO")
                 .requestMatchers(HttpMethod.POST, "/api/pedidos", "/api/pedidos/*/detalles", "/api/pedidos/*/pagos").hasAnyRole("ADMIN", "MESERO")
-                .requestMatchers(HttpMethod.PUT, "/api/pedidos/*/pagar").hasAnyRole("ADMIN", "MESERO")
+                .requestMatchers(HttpMethod.PUT, "/api/pedidos/*/pagar", "/api/pedidos/*/anular").hasAnyRole("ADMIN", "MESERO")
+                .requestMatchers("/api/disponibilidad", "/api/disponibilidad/**").hasAuthority(DisponibilidadService.PERMISO)
+                .requestMatchers("/admin/disponibilidad").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/pedidos/*/cuenta").hasAnyRole("ADMIN", "MESERO")
                 .requestMatchers(HttpMethod.GET, "/api/platos", "/api/platos/*/presentaciones").hasAnyRole("ADMIN", "MESERO")
                 .requestMatchers(HttpMethod.GET, "/api/mesas/ocupadas").hasAnyRole("ADMIN", "MESERO")

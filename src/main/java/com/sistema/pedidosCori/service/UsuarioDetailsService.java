@@ -26,6 +26,15 @@ public class UsuarioDetailsService implements UserDetailsService {
         boolean bloqueado = u.getNegocioId() != null
             && modulos.info(u.getNegocioId()).map(i -> !i.permiteAcceso()).orElse(true);
         return new UsuarioSesion(u.getUsername(), u.getPassword(), Boolean.TRUE.equals(u.getActivo()), bloqueado,
-            List.of(new SimpleGrantedAuthority("ROLE_" + u.getRol().name())), u.getNegocioId());
+            permisos(u), u.getNegocioId());
+    }
+
+    static List<SimpleGrantedAuthority> permisos(Usuario u) {
+        List<SimpleGrantedAuthority> permisos = new java.util.ArrayList<>();
+        permisos.add(new SimpleGrantedAuthority("ROLE_" + u.getRol().name()));
+        if (u.getRol() == com.sistema.pedidosCori.models.entity.Rol.ADMIN
+                || (u.getRol() == com.sistema.pedidosCori.models.entity.Rol.COCINA && Boolean.TRUE.equals(u.getGestionaDisponibilidad())))
+            permisos.add(new SimpleGrantedAuthority(DisponibilidadService.PERMISO));
+        return permisos;
     }
 }

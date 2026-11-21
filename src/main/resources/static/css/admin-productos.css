@@ -100,7 +100,7 @@
 .prod-foto-editor { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-start; }
 .prod-foto-marco { position: relative; flex: 1 1 220px; max-width: 360px; aspect-ratio: 4 / 3; overflow: hidden; border: 1px dashed var(--border-strong); border-radius: var(--radius-md); background: var(--surface-raised); }
 .prod-foto-marco img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.prod-foto-vacia { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-1); width: 100%; height: 100%; color: var(--text-muted); font-weight: 700; font-size: .9rem; }
+.prod-foto-vacia { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-1); width: 100%; height: 100%; background: linear-gradient(135deg, var(--brand-primary-soft), var(--brand-accent-soft)); color: var(--brand-primary-text); font-weight: 700; font-size: .85rem; }
 .prod-foto-vacia-icono { font-size: 2.6rem; line-height: 1; }
 .prod-foto-procesando { position: absolute; inset: 0; display: grid; place-items: center; background: var(--overlay-backdrop); color: var(--ink-light); font-weight: 800; }
 .prod-foto-controles { display: flex; flex-direction: column; gap: var(--space-2); flex: 1 1 240px; min-width: 0; }

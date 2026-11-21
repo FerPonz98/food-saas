@@ -111,8 +111,8 @@
 .cat-opciones legend { padding: 0; margin-bottom: var(--space-1); font-weight: 700; }
 .cat-opcional { color: var(--text-muted); font-weight: 400; }
 .cat-opcion { display: block; cursor: pointer; }
-.cat-opcion-card { display: flex; align-items: flex-start; gap: var(--space-3); min-height: 44px; padding: var(--space-3); border: 2px solid var(--border-main); border-radius: var(--radius-md); background: var(--surface-card); transition: border-color var(--dur-fast) ease, background-color var(--dur-fast) ease; }
-.cat-opcion-marca { display: inline-grid; place-items: center; width: 24px; height: 24px; flex-shrink: 0; margin-top: 2px; border: 2px solid var(--border-strong); border-radius: 6px; background: var(--surface-card); color: var(--action-primary-on); font-size: .9rem; font-weight: 800; }
+.cat-opcion-card { display: flex; align-items: flex-start; gap: var(--space-3); min-height: 44px; padding: var(--space-3); border: 1px solid var(--border-main); border-radius: var(--radius-md); background: var(--surface-card); transition: border-color var(--dur-fast) ease, background-color var(--dur-fast) ease; }
+.cat-opcion-marca { display: inline-grid; place-items: center; width: 24px; height: 24px; flex-shrink: 0; margin-top: 2px; border: 2px solid var(--border-strong); border-radius: var(--radius-xs); background: var(--surface-card); color: var(--action-primary-on); font-size: .9rem; font-weight: 800; }
 .cat-opcion-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .cat-opcion-texto small { color: var(--text-muted); font-size: .88rem; line-height: 1.35; }
 .cat-opcion:hover .cat-opcion-card { border-color: var(--border-strong); }

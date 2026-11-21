@@ -42,6 +42,10 @@ public class AdminPageController {
     @RequiereModulo(Modulo.CARTA_QR)
     public String cartaQr() { return "admin/carta-qr"; }
 
+    @GetMapping("/admin/disponibilidad")
+    @RequiereModulo(Modulo.DISPONIBILIDAD)
+    public String disponibilidad() { return "admin/disponibilidad"; }
+
     @GetMapping("/admin/apariencia")
     public String apariencia() { return "admin/apariencia"; }
 }

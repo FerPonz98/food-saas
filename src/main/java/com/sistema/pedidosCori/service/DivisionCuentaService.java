@@ -69,6 +69,8 @@ public class DivisionCuentaService {
         if (r == null) throw new IllegalArgumentException("Indica cómo se paga esta parte");
         Pedido p = pedidos.findByIdForUpdate(pedidoId).orElseThrow(() -> new NoSuchElementException("Pedido no encontrado: " + pedidoId));
         if (Boolean.TRUE.equals(p.getPagado())) throw new IllegalStateException("El pedido ya está pagado");
+        if (p.getEstado() == com.sistema.pedidosCori.models.entity.EstadoPedido.ANULADO)
+            throw new IllegalStateException("No se puede cobrar un pedido anulado");
         List<PagoParcial> anteriores = new ArrayList<>(pagos.findByPedidoIdOrderByFechaAscIdAsc(pedidoId));
         double total = redondear(p.getTotal() == null ? 0 : p.getTotal());
         double saldo = redondear(total - abonado(anteriores));

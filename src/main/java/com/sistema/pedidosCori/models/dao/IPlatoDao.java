@@ -47,4 +47,19 @@ public interface IPlatoDao extends JpaRepository<Plato, Long> {
     List<Object[]> contarActivosPorNegocio();
 
     long countByArchivadoFalse();
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Plato p WHERE p.id = :id")
+    Optional<Plato> findByIdForUpdate(@Param("id") Long id);
+
+    @Modifying
+    @Query("UPDATE Plato p SET p.stockDisponible = p.stockDisponible + :cantidad WHERE p.id = :id AND p.stockDisponible IS NOT NULL")
+    int reponerStock(@Param("id") Long id, @Param("cantidad") Integer cantidad);
+
+    @Query("SELECT p.stockDisponible FROM Plato p WHERE p.id = :id")
+    Integer stockActual(@Param("id") Long id);
+
+    @Modifying
+    @Query("UPDATE Plato p SET p.pausado = false WHERE p.id IN :ids")
+    void reactivar(@Param("ids") List<Long> ids);
 }

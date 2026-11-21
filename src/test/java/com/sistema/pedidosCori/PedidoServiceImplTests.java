@@ -30,7 +30,8 @@ class PedidoServiceImplTests {
     private final IPresentacionPlatoDao presentaciones = mock(IPresentacionPlatoDao.class);
     private final ConfiguracionNegocioService configuracion = mock(ConfiguracionNegocioService.class);
     private final PedidoServiceImpl service = new PedidoServiceImpl(pedidos, platos, presentaciones,
-        configuracion, mock(SimpMessagingTemplate.class), mock(com.sistema.pedidosCori.service.AuditoriaService.class));
+        configuracion, mock(SimpMessagingTemplate.class), mock(com.sistema.pedidosCori.service.AuditoriaService.class),
+        mock(com.sistema.pedidosCori.service.DisponibilidadService.class));
     private Pedido pedido;
 
     @BeforeEach

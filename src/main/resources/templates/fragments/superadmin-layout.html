@@ -5,10 +5,10 @@
   <a class="admin-skip" href="#contenido">Saltar al contenido</a>
   <header class="admin-header">
     <button type="button" class="admin-menu-btn flat" aria-controls="admin-nav" aria-expanded="false" data-admin-abrir>
-      <span class="admin-menu-ico" aria-hidden="true">☰</span>
-      <span>Menú</span>
+      <svg th:replace="~{fragments/icono :: i('menu')}"></svg>
+      <span class="visually-hidden">Menú</span>
     </button>
-    <a class="admin-brand" th:href="@{/superadmin}" aria-label="Ir al panel de la plataforma">
+    <a class="admin-brand admin-brand-movil" th:href="@{/superadmin}" aria-label="Ir al panel de la plataforma">
       <img th:src="${negocio.logoUrl}" alt="">
       <span class="admin-brand-nombre">Plataforma</span>
     </a>
@@ -20,22 +20,36 @@
   <div class="admin-nav-fondo" data-admin-cerrar hidden></div>
   <nav class="admin-nav" id="admin-nav" aria-label="Plataforma">
     <div class="admin-nav-top">
-      <span class="admin-nav-titulo">Plataforma</span>
-      <button type="button" class="admin-nav-cerrar flat" data-admin-cerrar aria-label="Cerrar menú">✕</button>
+      <a class="admin-brand" th:href="@{/superadmin}" aria-label="Ir al panel de la plataforma">
+        <img th:src="${negocio.logoUrl}" alt="">
+        <span class="admin-brand-texto">
+          <span class="admin-brand-nombre">Plataforma</span>
+          <span class="admin-brand-sub">Superadministración</span>
+        </span>
+      </a>
+      <button type="button" class="admin-nav-cerrar flat" data-admin-cerrar aria-label="Cerrar menú">
+        <svg th:replace="~{fragments/icono :: i('x')}"></svg>
+      </button>
     </div>
     <div class="admin-nav-grupo">
       <p class="admin-nav-grupo-titulo" id="sa-grupo">Superadministración</p>
       <ul aria-labelledby="sa-grupo">
         <li>
           <a class="admin-nav-item" th:href="@{/superadmin}" th:attr="aria-current=${activa == 'negocios' ? 'page' : null}">
-            <span class="admin-nav-icono" aria-hidden="true">🏪</span>
+            <span class="admin-nav-icono"><svg th:replace="~{fragments/icono :: i('building')}"></svg></span>
             <span class="admin-nav-texto"><span class="admin-nav-label">Negocios</span><span class="admin-nav-hint">Suscripciones, módulos y accesos</span></span>
           </a>
         </li>
         <li>
           <a class="admin-nav-item" th:href="@{/superadmin/planes}" th:attr="aria-current=${activa == 'planes' ? 'page' : null}">
-            <span class="admin-nav-icono" aria-hidden="true">⭐</span>
+            <span class="admin-nav-icono"><svg th:replace="~{fragments/icono :: i('star')}"></svg></span>
             <span class="admin-nav-texto"><span class="admin-nav-label">Planes</span><span class="admin-nav-hint">Precios, límites y funciones</span></span>
+          </a>
+        </li>
+        <li>
+          <a class="admin-nav-item" th:href="@{/superadmin/cobros}" th:attr="aria-current=${activa == 'cobros' ? 'page' : null}">
+            <span class="admin-nav-icono"><svg th:replace="~{fragments/icono :: i('wallet')}"></svg></span>
+            <span class="admin-nav-texto"><span class="admin-nav-label">Cobros</span><span class="admin-nav-hint">Facturas, pagos, avisos y módulos extra</span></span>
           </a>
         </li>
       </ul>

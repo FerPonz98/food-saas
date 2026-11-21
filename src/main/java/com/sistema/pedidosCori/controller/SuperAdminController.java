@@ -26,6 +26,9 @@ public class SuperAdminController {
 
     @GetMapping("/superadmin/planes")
     public String planes() { return "superadmin/planes"; }
+
+    @GetMapping("/superadmin/cobros")
+    public String cobros() { return "superadmin/cobros"; }
 }
 
 @RestController

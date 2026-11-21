@@ -66,7 +66,7 @@
 .usr-rol-grupo > .admin-help { margin: 0 0 var(--space-2); }
 .usr-rol-opciones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
 .usr-rol-opcion { display: block; cursor: pointer; min-width: 0; }
-.usr-rol-card { display: flex; flex-direction: column; gap: var(--space-2); height: 100%; min-height: 44px; padding: var(--space-3); border-radius: var(--radius-md); border: 2px solid var(--border-main); background: var(--surface-card); transition: border-color var(--dur-fast) ease, background-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease; }
+.usr-rol-card { display: flex; flex-direction: column; gap: var(--space-2); height: 100%; min-height: 44px; padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--border-main); background: var(--surface-card); transition: border-color var(--dur-fast) ease, background-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease; }
 .usr-rol-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .usr-rol-texto strong { overflow-wrap: anywhere; }
 .usr-rol-texto small { color: var(--text-muted); font-size: .85rem; line-height: 1.35; }

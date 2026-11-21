@@ -62,6 +62,9 @@ public class Negocio {
     @Column(name = "vence_en")
     private LocalDate venceEn;
 
+    @Column(name = "motivo_suspension", length = 20)
+    private String motivoSuspension;
+
     @Column(name = "contacto_nombre", length = 120)
     private String contactoNombre;
 

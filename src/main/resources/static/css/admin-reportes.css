@@ -41,9 +41,11 @@
 .rep-seccion-head h2 { margin: 0; font-size: 1.15rem; font-weight: 800; }
 .rep-nota { margin-top: var(--space-3); }
 .rep-kpis { grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: var(--space-3); align-items: stretch; }
-.rep-kpis .admin-stat { padding: var(--space-3); }
+
 .rep-kpis .admin-stat-valor { font-size: clamp(1.15rem, 4.6vw, 1.75rem); }
 .rep-antes { color: var(--text-muted); font-size: .82rem; font-variant-numeric: tabular-nums; }
+.admin-stat-destacado .rep-antes { color: inherit; opacity: .88; }
+.rep-kpis .admin-stat { padding: var(--space-4); }
 .rep-var {
   display: inline-flex;
   align-items: center;
@@ -146,7 +148,7 @@
 .rep-split-b { background: var(--action-accent); }
 .rep-leyenda { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
 .rep-leyenda li { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); }
-.rep-muestra { display: inline-block; width: 14px; height: 14px; border-radius: 4px; }
+.rep-muestra { display: inline-block; width: 14px; height: 14px; border-radius: var(--radius-xs); }
 .rep-leyenda-texto { display: flex; flex-direction: column; min-width: 0; }
 .rep-leyenda-texto strong { overflow-wrap: anywhere; }
 .rep-leyenda-texto span { color: var(--text-muted); font-size: .85rem; font-variant-numeric: tabular-nums; }

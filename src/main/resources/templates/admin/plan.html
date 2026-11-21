@@ -7,10 +7,12 @@
   <th:block th:replace="~{fragments/head :: branding}"></th:block>
   <link rel="stylesheet" th:href="@{/css/admin.css}">
   <link rel="stylesheet" th:href="@{/css/admin-plan.css}">
+  <link rel="stylesheet" th:href="@{/css/cobros.css}">
   <script defer th:src="@{/js/security.js}"></script>
   <script defer th:src="@{/js/borradores.js}"></script>
   <script defer th:src="@{/js/admin-shell.js}"></script>
   <script defer th:src="@{/js/admin-plan.js}"></script>
+  <script defer th:src="@{/js/admin-pagos.js}"></script>
 </head>
 <body class="admin-shell">
   <div th:replace="~{fragments/admin-layout :: barra('plan')}"></div>
@@ -36,6 +38,14 @@
         <div><dt>Vence</dt><dd id="plan-vence">…</dd></div>
       </dl>
       </div>
+    </section>
+
+    <section class="admin-card" id="pagos" aria-labelledby="plan-pagos-titulo">
+      <div class="admin-card-head">
+        <h2 id="plan-pagos-titulo">Pagos y facturas</h2>
+        <p>Tu próximo pago, cómo pagar y el historial. Si un pago vence, verás avisos aquí y en la parte superior del panel.</p>
+      </div>
+      <div class="admin-card-body" id="plan-pagos"></div>
     </section>
 
     <section class="admin-card" aria-labelledby="plan-uso-titulo">

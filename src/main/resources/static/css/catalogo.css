@@ -188,3 +188,18 @@ html.ctl-bloqueado, html.ctl-bloqueado body { overflow: hidden; }
 @media (max-width: 380px) {
   .ctl-volver-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
+
+.ctl .ctl-card-celda { position: relative; display: flex; min-width: 0; }
+.ctl .ctl-card-celda[hidden] { display: none; }
+.ctl .ctl-card-celda > .ctl-card { flex: 1; }
+.ctl .ctl-card-celda .ctl-card-info { padding-right: 60px; }
+.ctl .ctl-card-mas { position: absolute; right: var(--space-2); bottom: var(--space-2); z-index: 2; display: inline-grid; place-items: center; width: 44px; height: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: var(--action-primary); color: var(--action-primary-on); box-shadow: var(--elev-2); cursor: pointer; transition: transform var(--dur-fast) var(--ease-spring), background-color var(--dur-fast) ease; }
+.ctl .ctl-card-mas .ico { width: 22px; height: 22px; stroke-width: 2.5; }
+.ctl .ctl-card-mas:active { transform: scale(.88); }
+@media (hover: hover) { .ctl .ctl-card-mas:hover { background: var(--action-primary-hover); color: var(--action-primary-on-hover); transform: scale(1.06); } }
+.ctl .ctl-card-pedido { position: absolute; top: var(--space-2); right: var(--space-2); z-index: 2; padding: 3px 10px; border-radius: var(--radius-pill); background: var(--action-accent); color: var(--action-accent-on); font-size: .72rem; font-weight: 800; box-shadow: var(--elev-1); pointer-events: none; animation: ui-pop-in var(--dur-base) var(--ease-spring); }
+.ctl .ctl-card-en-pedido > .ctl-card { border-color: var(--brand-accent-text); box-shadow: 0 0 0 1px var(--brand-accent-text), var(--elev-1); }
+.ctl .ctl-lupa .ico { width: 20px; height: 20px; }
+.ctl .ctl-vacio-icono .ico { width: 36px; height: 36px; color: var(--brand-primary-text); }
+.ctl .ctl-card-tamanos { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.ctl .ctl-card-tamano { padding: 1px 8px; border-radius: var(--radius-pill); background: var(--brand-secondary-soft); color: var(--brand-secondary-text); font-size: .7rem; font-weight: 700; line-height: 1.5; }

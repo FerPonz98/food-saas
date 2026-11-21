@@ -565,6 +565,24 @@
         const procesarActual = async () => {
             if (!foto.original) return;
             mostrarError(form, 'foto', '');
+            const esGif = foto.original.type === 'image/gif' || /\.gif$/i.test(foto.original.name || '');
+            if (esGif) {
+                const conGif = (NEGOCIO.modulos || []).includes('FOTOS_ANIMADAS');
+                if (!conGif) {
+                    foto.original = null;
+                    mostrarError(form, 'foto', 'Las fotos animadas (GIF) están incluidas en el plan Premium. Elige una foto normal o mejora tu plan en «Mi plan».');
+                    return;
+                }
+                if (foto.original.size > 3 * 1024 * 1024) {
+                    foto.original = null;
+                    mostrarError(form, 'foto', 'La foto animada no puede superar 3 MB. Prueba con un GIF más corto o más pequeño.');
+                    return;
+                }
+                ponerNueva(foto.original);
+                fotoEstado.textContent = `Foto animada lista (${kb(foto.original.size)}). Se moverá en la carta y en el catálogo.`;
+                pintarFoto();
+                return;
+            }
             foto.procesando = true;
             fotoEstado.textContent = '';
             pintarFoto();
@@ -1015,7 +1033,7 @@
             if (id && foto.nueva) {
                 try {
                     const datosFoto = new FormData();
-                    datosFoto.append('archivo', foto.nueva, foto.nueva.type === 'image/webp' ? 'foto.webp' : 'foto.jpg');
+                    datosFoto.append('archivo', foto.nueva, foto.nueva.type === 'image/gif' ? 'foto.gif' : foto.nueva.type === 'image/webp' ? 'foto.webp' : 'foto.jpg');
                     await pedir(`/api/admin/platos/${encodeURIComponent(id)}/imagen`, { method: 'PUT', formData: datosFoto });
                     estado.versiones.set(id, Date.now());
                 } catch (error) {

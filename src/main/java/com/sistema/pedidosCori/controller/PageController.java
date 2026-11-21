@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PageController {
     private final ModuloService modulos;
+    private final com.sistema.pedidosCori.service.CobranzaService cobranza;
 
     @GetMapping("/")
     public String home(Authentication auth) {
@@ -39,6 +40,13 @@ public class PageController {
     @GetMapping("/suspendido")
     public String suspendido(Model model) {
         model.addAttribute("negocioSuspendido", NegocioActual.id().flatMap(modulos::info).orElse(null));
+        model.addAttribute("pagoPendiente", NegocioActual.id().map(id -> {
+            try {
+                return cobranza.estado(id).pendiente();
+            } catch (RuntimeException e) {
+                return null;
+            }
+        }).orElse(null));
         return "suspendido";
     }
 

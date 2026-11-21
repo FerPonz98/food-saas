@@ -4,11 +4,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class TemaNegocio {
-    public static final String SUPERFICIE_CLARA = "#F5F7FB";
-    public static final String SUPERFICIE_CLARA_ELEVADA = "#ECF0F5";
-    public static final String SUPERFICIE_OSCURA = "#111827";
-    public static final String SUPERFICIE_OSCURA_ELEVADA = "#263142";
-    public static final String SUPERFICIE_OSCURA_TARJETA = "#1B2433";
+    public static final String SUPERFICIE_CLARA = "#F7F3EE";
+    public static final String SUPERFICIE_CLARA_ELEVADA = "#F0EAE2";
+    public static final String SUPERFICIE_OSCURA = "#15120F";
+    public static final String SUPERFICIE_OSCURA_ELEVADA = "#29241F";
+    public static final String SUPERFICIE_OSCURA_TARJETA = "#1E1A16";
     private static final String OSCURO = "#050505";
     private static final String NEGRO = "#000000";
     private static final String BLANCO = "#FFFFFF";

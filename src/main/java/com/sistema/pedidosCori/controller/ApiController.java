@@ -1,5 +1,8 @@
 package com.sistema.pedidosCori.controller;
 
+import com.sistema.pedidosCori.service.DisponibilidadService;
+import com.sistema.pedidosCori.service.TrasConfirmar;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -80,6 +83,11 @@ public class ApiController {
         plato.setDescripcion(descripcionValida(plato.getDescripcion()));
         if (plato.getDisponible() == null) plato.setDisponible(true);
         plato.setArchivado(false);
+        plato.setPausado(false);
+        plato.setStockDisponible(stockValido(plato.getStockDisponible()));
+        plato.setTipoDisponibilidad(plato.getStockDisponible() != null ? com.sistema.pedidosCori.models.entity.TipoDisponibilidad.LIMITADA
+            : plato.getTipoDisponibilidad() == com.sistema.pedidosCori.models.entity.TipoDisponibilidad.MANUAL
+                ? com.sistema.pedidosCori.models.entity.TipoDisponibilidad.MANUAL : com.sistema.pedidosCori.models.entity.TipoDisponibilidad.CONTINUA);
         Plato guardado = platoDao.save(plato);
         auditoria.registrar(AccionAuditoria.PLATO_CREADO, "Plato", guardado.getId(), () -> describirPlato(guardado));
         return ResponseEntity.ok(guardado);
@@ -93,7 +101,8 @@ public class ApiController {
             p.setNombre(d.getNombre()); p.setPrecio(d.getPrecio()); p.setCategoria(categoria);
             p.setDescripcion(descripcion);
             if (Boolean.TRUE.equals(d.getSinLimite())) p.setStockDisponible(null);
-            else if (d.isStockPresente()) p.setStockDisponible(d.getStockDisponible());
+            else if (d.isStockPresente()) p.setStockDisponible(stockValido(d.getStockDisponible()));
+            p.setTipoDisponibilidad(DisponibilidadService.tipoParaCantidad(p, p.getStockDisponible()));
             Plato guardado = platoDao.save(p);
             auditoria.registrar(AccionAuditoria.PLATO_EDITADO, "Plato", guardado.getId(), () -> describirPlato(guardado));
             return ResponseEntity.ok(guardado);
@@ -231,6 +240,22 @@ public class ApiController {
         return ResponseEntity.ok(pedido);
     }
 
+    public record AnulacionRequest(String motivo) {
+    }
+
+    @PutMapping("/pedidos/{id}/anular")
+    public ResponseEntity<Pedido> anularPedido(@PathVariable Long id, @RequestBody(required = false) AnulacionRequest r) {
+        Pedido pedido = pedidoService.anular(id, r == null ? null : r.motivo());
+        NotificacionWsDTO n = NotificacionWsDTO.builder()
+            .pedidoId(pedido.getId()).numeroMesa(pedido.getNumeroMesa()).nombreCliente(pedido.getNombreCliente())
+            .estado(pedido.getEstado()).tipo("PEDIDO_ANULADO").mensaje("Pedido anulado — " + labelPedido(pedido)).build();
+        TrasConfirmar.ejecutar(() -> {
+            messagingTemplate.convertAndSend("/topic/mesero", n);
+            messagingTemplate.convertAndSend("/topic/cocina", n);
+        });
+        return ResponseEntity.ok(pedido);
+    }
+
     @GetMapping("/pedidos/activos")
     public ResponseEntity<List<Pedido>> pedidosActivos() {
         return ResponseEntity.ok(pedidoService.obtenerPedidosActivos());
@@ -265,7 +290,9 @@ public class ApiController {
             .filter(p -> !Boolean.TRUE.equals(p.getArchivado())).ifPresent(p -> {
             publicados[0]++;
             p.setDisponible(true);
-            p.setStockDisponible(item.getCantidad());
+            p.setPausado(false);
+            p.setStockDisponible(stockValido(item.getCantidad()));
+            p.setTipoDisponibilidad(DisponibilidadService.tipoParaCantidad(p, p.getStockDisponible()));
             platoDao.save(p);
             messagingTemplate.convertAndSend("/topic/stock",
                 StockUpdateDTO.builder().platoId(p.getId()).stockRestante(p.getStockDisponible()).nombrePlato(p.getNombre()).build());
@@ -284,6 +311,14 @@ public class ApiController {
         if (p.getPrecio() != null) texto.append(" · ").append(dinero(p.getPrecio()));
         if (p.getStockDisponible() != null) texto.append(" · Stock ").append(p.getStockDisponible());
         return texto.toString();
+    }
+
+    private static Integer stockValido(Integer stock) {
+        if (stock == null) return null;
+        if (stock < 0) throw new IllegalArgumentException("La cantidad no puede ser negativa");
+        if (stock > DisponibilidadService.STOCK_MAXIMO)
+            throw new IllegalArgumentException("La cantidad máxima es " + DisponibilidadService.STOCK_MAXIMO);
+        return stock;
     }
 
     private String descripcionValida(String descripcion) {

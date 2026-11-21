@@ -38,6 +38,7 @@ public class PedidoServiceImpl implements IPedidoService{
 
     private final SimpMessagingTemplate messagingTemplate;
     private final AuditoriaService auditoria;
+    private final DisponibilidadService disponibilidad;
 
     @Override
     @Transactional
@@ -65,6 +66,7 @@ public class PedidoServiceImpl implements IPedidoService{
             .map(d -> construirDetalle(pedido, d))
             .collect(Collectors.toList());
  
+        disponibilidad.descontar(detalles);
         double total = detalles.stream().mapToDouble(DetallePedido::getSubtotal).sum();
         pedido.setDetalles(detalles);
         pedido.setTotal(total);
@@ -155,6 +157,9 @@ public class PedidoServiceImpl implements IPedidoService{
         if (Boolean.TRUE.equals(pedido.getPagado())) {
             throw new IllegalStateException("No se pueden agregar productos a un pedido pagado");
         }
+        if (pedido.getEstado() == EstadoPedido.ANULADO) {
+            throw new IllegalStateException("No se pueden agregar productos a un pedido anulado");
+        }
         if (detalles == null || detalles.isEmpty()) {
             throw new IllegalArgumentException("Agrega al menos un producto");
         }
@@ -167,6 +172,7 @@ public class PedidoServiceImpl implements IPedidoService{
             pedido.setEstado(EstadoPedido.PENDIENTE);
         }
         List<DetallePedido> nuevos = detalles.stream().map(d -> construirDetalle(pedido, d)).toList();
+        disponibilidad.descontar(nuevos);
         pedido.getDetalles().addAll(nuevos);
         pedido.setTotal(pedido.getDetalles().stream().mapToDouble(DetallePedido::getSubtotal).sum());
         Pedido guardado = pedidoDao.save(pedido);
@@ -177,8 +183,32 @@ public class PedidoServiceImpl implements IPedidoService{
     }
  
     @Override
+    @Transactional
+    public Pedido anular(Long id, String motivo) {
+        Pedido pedido = obtenerPorIdBloqueado(id);
+        if (pedido.getEstado() == EstadoPedido.ANULADO) throw new IllegalStateException("Este pedido ya fue anulado");
+        if (Boolean.TRUE.equals(pedido.getPagado())) throw new IllegalStateException("No se puede anular un pedido ya cobrado");
+        if (pedido.getAbonado() != null && pedido.getAbonado() > 0)
+            throw new IllegalStateException("Este pedido tiene pagos parciales registrados; no se puede anular");
+        String limpio = motivo == null ? "" : motivo.trim().replaceAll("\\s+", " ");
+        if (limpio.isEmpty()) throw new IllegalArgumentException("Indica el motivo de la anulación");
+        if (limpio.length() > 200) throw new IllegalArgumentException("El motivo admite hasta 200 caracteres");
+        String usuario = UsuarioActual.nombre().orElse(null);
+        EstadoPedido anterior = pedido.getEstado();
+        disponibilidad.reponer(pedido, usuario, limpio);
+        pedido.setEstado(EstadoPedido.ANULADO);
+        pedido.setAnuladoEn(LocalDateTime.now());
+        pedido.setAnuladoPor(AuditoriaService.recortar(usuario, 60));
+        pedido.setMotivoAnulacion(limpio);
+        Pedido guardado = pedidoDao.save(pedido);
+        auditoria.registrar(AccionAuditoria.PEDIDO_ANULADO, "Pedido", guardado.getId(),
+            () -> describir(guardado) + " · " + anterior + " → ANULADO · " + limpio + " · " + dinero(guardado.getTotal()));
+        return guardado;
+    }
+
+    @Override
     public List<Pedido> obtenerPedidosActivos() {
-        return pedidoDao.findByEstadoNotOrPagadoFalseOrderByFechaCreacionAsc(EstadoPedido.ENTREGADO);
+        return pedidoDao.findActivos(EstadoPedido.ENTREGADO, EstadoPedido.ANULADO);
     }
 
     @Override
@@ -209,6 +239,9 @@ public class PedidoServiceImpl implements IPedidoService{
         Pedido pedido = obtenerPorIdBloqueado(id);
         if (Boolean.TRUE.equals(pedido.getPagado())) {
             throw new IllegalStateException("El pedido ya está pagado");
+        }
+        if (pedido.getEstado() == EstadoPedido.ANULADO) {
+            throw new IllegalStateException("No se puede cobrar un pedido anulado");
         }
         if (pedido.getAbonado() != null && pedido.getAbonado() > 0)
             throw new IllegalStateException("Este pedido tiene pagos parciales: cobra el saldo desde «Dividir cuenta»");

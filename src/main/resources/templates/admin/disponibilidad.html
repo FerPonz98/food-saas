@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title th:text="|Disponibilidad — ${negocio.nombreNegocio}|">Disponibilidad</title>
+  <th:block th:replace="~{fragments/head :: branding}"></th:block>
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+  <link rel="stylesheet" th:href="@{/css/disponibilidad.css}">
+  <script defer th:src="@{/js/vendor/sockjs.min.js}"></script>
+  <script defer th:src="@{/js/vendor/stomp.min.js}"></script>
+  <script defer th:src="@{/js/security.js}"></script>
+  <script defer th:src="@{/js/admin-shell.js}"></script>
+  <script defer th:src="@{/js/disponibilidad.js}"></script>
+  <script defer th:src="@{/js/admin-disponibilidad.js}"></script>
+</head>
+<body class="admin-shell">
+  <div th:replace="~{fragments/admin-layout :: barra('disponibilidad')}"></div>
+  <main class="admin-main" id="contenido" tabindex="-1">
+    <header class="admin-page-head">
+      <div>
+        <h1>Disponibilidad</h1>
+        <p class="admin-page-desc">Controla en vivo qué se puede pedir hoy. Los cambios llegan al instante a cocina y meseros, y en segundos a la carta QR.</p>
+      </div>
+      <div class="admin-page-actions">
+        <a class="btn button-secondary" th:href="@{/admin/menu-hoy}"><svg th:replace="~{fragments/icono :: i('clipboard')}"></svg> Menú de hoy</a>
+        <a class="btn button-secondary" th:href="@{/admin/usuarios}"><svg th:replace="~{fragments/icono :: i('users')}"></svg> Permisos</a>
+      </div>
+    </header>
+
+    <section class="admin-card" aria-labelledby="titulo-modos">
+      <div class="admin-card-head">
+        <h2 id="titulo-modos">Tres formas de controlar cada producto</h2>
+      </div>
+      <div class="admin-card-body admin-grid">
+        <div><strong>Contada</strong><p class="admin-help">Tiene una cantidad. Cada pedido confirmado descuenta y al llegar a cero se muestra «Agotado».</p></div>
+        <div><strong>Manual</strong><p class="admin-help">Sin conteo. Cocina marca «Hay» o «Agotado» según lo que quede.</p></div>
+        <div><strong>Continua</strong><p class="admin-help">Siempre disponible mientras esté en el menú de hoy. Se puede pausar ante un imprevisto.</p></div>
+      </div>
+    </section>
+
+    <div id="disponibilidad-panel"></div>
+  </main>
+</body>
+</html>

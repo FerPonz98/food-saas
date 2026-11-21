@@ -25,6 +25,15 @@ public class PlatoImagenService {
     private final LogoValidator validator;
     private final AuditoriaService auditoria;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ModuloService modulos;
+
+    private static byte[] cabecera(MultipartFile archivo) {
+        try (java.io.InputStream in = archivo.getInputStream()) {
+            return in.readNBytes(6);
+        } catch (java.io.IOException e) {
+            throw new IllegalArgumentException("No se pudo leer la foto", e);
+        }
+    }
 
     public record ImagenPlato(byte[] datos, String mimeType, Long version) {
     }
@@ -33,7 +42,14 @@ public class PlatoImagenService {
     public Plato actualizar(Long platoId, MultipartFile archivo) {
         Plato plato = platoDao.findById(platoId).filter(p -> !Boolean.TRUE.equals(p.getArchivado()))
             .orElseThrow(() -> new NoSuchElementException("Producto no encontrado"));
-        LogoValidator.LogoValidado foto = validator.validarFoto(archivo);
+        LogoValidator.LogoValidado foto;
+        if (archivo != null && !archivo.isEmpty() && LogoValidator.esGif(cabecera(archivo))) {
+            if (!modulos.tiene(com.sistema.pedidosCori.models.entity.Modulo.FOTOS_ANIMADAS))
+                throw new ModuloService.ModuloNoIncluido(com.sistema.pedidosCori.models.entity.Modulo.FOTOS_ANIMADAS);
+            foto = validator.validarFotoAnimada(archivo);
+        } else {
+            foto = validator.validarFoto(archivo);
+        }
         PlatoImagen imagen = imagenDao.findById(platoId).orElseGet(PlatoImagen::new);
         imagen.setPlatoId(platoId);
         imagen.setDatos(foto.datos());
@@ -71,8 +87,24 @@ public class PlatoImagenService {
         if (plato.getImagenVersion() == null) throw new NoSuchElementException("Este producto no tiene foto");
         PlatoImagen imagen = imagenDao.findById(platoId)
             .orElseThrow(() -> new NoSuchElementException("Este producto no tiene foto"));
+        if ("image/gif".equals(imagen.getMimeType()) && !modulos.tiene(com.sistema.pedidosCori.models.entity.Modulo.FOTOS_ANIMADAS)) {
+            byte[] fija = primerCuadro(imagen.getDatos());
+            if (fija != null) return new ImagenPlato(fija, "image/png", plato.getImagenVersion());
+        }
         return new ImagenPlato(Arrays.copyOf(imagen.getDatos(), imagen.getDatos().length), imagen.getMimeType(),
             plato.getImagenVersion());
+    }
+
+    private static byte[] primerCuadro(byte[] gif) {
+        try {
+            java.awt.image.BufferedImage cuadro = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(gif));
+            if (cuadro == null) return null;
+            java.io.ByteArrayOutputStream salida = new java.io.ByteArrayOutputStream();
+            javax.imageio.ImageIO.write(cuadro, "png", salida);
+            return salida.toByteArray();
+        } catch (java.io.IOException | RuntimeException e) {
+            return null;
+        }
     }
 
     @Transactional

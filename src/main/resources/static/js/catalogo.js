@@ -50,6 +50,7 @@
 
     function estadoPlato(plato) {
         if (plato.disponible === false) return { tipo: 'off', texto: 'No disponible hoy', elegible: false };
+        if (plato.pausado === true) return { tipo: 'agotado', texto: 'Agotado', elegible: false };
         const propio = stockDe(plato);
         if (propio !== null && propio <= 0) return { tipo: 'agotado', texto: 'Agotado', elegible: false };
         let restante = propio;
@@ -195,7 +196,8 @@
 
         const buscador = el('div', 'ctl-buscar');
         buscador.setAttribute('role', 'search');
-        const lupa = el('span', 'ctl-lupa', '⌕');
+        const lupa = el('span', 'ctl-lupa');
+        if (window.Icono) lupa.append(Icono.crear('search')); else lupa.textContent = '⌕';
         lupa.setAttribute('aria-hidden', 'true');
         const campo = el('input', 'ctl-campo');
         campo.type = 'search';
@@ -292,12 +294,45 @@
             const info = el('span', 'ctl-card-info');
             info.append(el('span', 'ctl-card-nombre', plato.nombre));
             if (plato.descripcion) info.append(el('span', 'ctl-card-desc', plato.descripcion));
+            const tamanos = (plato.presentaciones || []).filter(p => estadoPresentacion(p).tipo !== 'agotado');
+            if (tamanos.length > 1) {
+                const fila = el('span', 'ctl-card-tamanos');
+                fila.setAttribute('aria-label', `Tamaños: ${tamanos.map(t => t.nombre).join(', ')}`);
+                tamanos.slice(0, 3).forEach(t => fila.append(el('span', 'ctl-card-tamano', t.nombre)));
+                if (tamanos.length > 3) fila.append(el('span', 'ctl-card-tamano', `+${tamanos.length - 3}`));
+                info.append(fila);
+            }
             const precio = precioPlato(plato);
             info.append(el('span', 'ctl-card-precio', precio.texto));
             card.append(media, info);
             card.setAttribute('aria-label', `${plato.nombre}, ${precio.texto}, ${estado.texto}`);
             card.addEventListener('click', () => abrirProducto(plato.id));
-            return card;
+            if (typeof op.alElegir !== 'function') return card;
+            const celda = el('div', 'ctl-card-celda');
+            celda.append(card);
+            const enPedido = typeof op.enPedido === 'function' ? Number(op.enPedido(plato.id)) || 0 : 0;
+            if (enPedido > 0) {
+                const marca = el('span', 'ctl-card-pedido', `${enPedido} en tu pedido`);
+                celda.classList.add('ctl-card-en-pedido');
+                celda.append(marca);
+            }
+            if (estado.elegible) {
+                const mas = el('button', 'ctl-card-mas flat');
+                mas.type = 'button';
+                mas.setAttribute('aria-label', `Agregar ${plato.nombre} al pedido`);
+                if (window.Icono) mas.append(Icono.crear('plus')); else mas.textContent = '+';
+                mas.addEventListener('click', () => op.alElegir(plato, { rapido: true, origen: mas }));
+                celda.append(mas);
+            }
+            return celda;
+        }
+
+        function botonDe(reg) {
+            return reg.card.classList.contains('ctl-card') ? reg.card : reg.card.querySelector('.ctl-card');
+        }
+
+        function refrescarPedido() {
+            [...tarjetas.keys()].forEach(id => refrescarTarjeta(id));
         }
 
         function refrescarTarjeta(id) {
@@ -305,10 +340,14 @@
             if (!reg) return;
             const nueva = tarjeta(reg.plato, reg.cat);
             nueva.hidden = reg.card.hidden;
-            const tenia = document.activeElement === reg.card;
+            const activo = document.activeElement;
+            const tenia = activo && reg.card.contains(activo) ? (activo.classList.contains('ctl-card-mas') ? '.ctl-card-mas' : '.ctl-card') : null;
             reg.card.replaceWith(nueva);
             reg.card = nueva;
-            if (tenia) nueva.focus({ preventScroll: true });
+            if (tenia) {
+                const destino = nueva.matches(tenia) ? nueva : nueva.querySelector(tenia);
+                if (destino) destino.focus({ preventScroll: true });
+            }
         }
 
         function coincide(plato, cat) {
@@ -334,7 +373,9 @@
             vacio.replaceChildren();
             vacio.hidden = total > 0;
             if (!total) {
-                vacio.append(el('span', 'ctl-vacio-icono', busqueda ? '🔍' : '🍽️'));
+                const icVacio = el('span', 'ctl-vacio-icono');
+                if (window.Icono) icVacio.append(Icono.crear(busqueda ? 'search' : 'utensils')); else icVacio.textContent = busqueda ? '🔍' : '🍽️';
+                vacio.append(icVacio);
                 if (busqueda) {
                     vacio.append(el('p', 'ctl-vacio-titulo', `No encontramos productos para «${campo.value.trim()}»`));
                     const btn = el('button', 'button-secondary', 'Ver todo el catálogo');
@@ -558,10 +599,10 @@
             raiz.classList.remove('ctl-con-detalle');
             document.documentElement.classList.remove('ctl-bloqueado');
             const reg = tarjetas.get(ultimo);
-            const destino = reg && !reg.card.hidden ? reg.card : focoPrevio;
+            const destino = reg && !reg.card.hidden ? botonDe(reg) : focoPrevio;
             if (destino && document.contains(destino)) {
-                destino.focus({ preventScroll: destino !== (reg && reg.card) });
-                if (reg && destino === reg.card) reg.card.scrollIntoView({ block: 'nearest' });
+                destino.focus({ preventScroll: destino !== (reg && botonDe(reg)) });
+                if (reg && destino === botonDe(reg)) reg.card.scrollIntoView({ block: 'nearest' });
             }
             focoPrevio = null;
         }
@@ -720,6 +761,7 @@
             actualizarStock,
             abrirProducto,
             cerrarDetalle,
+            refrescarPedido,
             destruir,
             enfocarBusqueda: () => campo.focus()
         };

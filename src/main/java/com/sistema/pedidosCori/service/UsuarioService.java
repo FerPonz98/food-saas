@@ -62,6 +62,7 @@ public class UsuarioService {
         Usuario u = usuarioDao.save(Usuario.builder()
             .username(username).nombreCompleto(nombre).rol(rol).negocioId(negocio)
             .password(passwordEncoder.encode(password)).activo(true)
+            .gestionaDisponibilidad(rol == Rol.COCINA && Boolean.TRUE.equals(r.gestionaDisponibilidad()))
             .debeCambiarPassword(true).passwordActualizadaEn(LocalDateTime.now()).build());
         auditoria.registrar(AccionAuditoria.USUARIO_CREADO, "Usuario", u.getId(),
             () -> nombre + " (" + username + ") · Rol " + etiquetaRol(rol));
@@ -88,21 +89,25 @@ public class UsuarioService {
         Rol rolAnterior = u.getRol();
         String nombreAnterior = u.getNombreCompleto();
         boolean activoAnterior = Boolean.TRUE.equals(u.getActivo());
+        boolean permisoAnterior = Boolean.TRUE.equals(u.getGestionaDisponibilidad());
+        boolean permiso = rol == Rol.COCINA && (r.gestionaDisponibilidad() == null ? permisoAnterior : r.gestionaDisponibilidad());
         u.setNombreCompleto(nombre);
         u.setRol(rol);
         u.setActivo(activo);
+        u.setGestionaDisponibilidad(permiso);
         usuarioDao.save(u);
 
         List<String> cambios = new ArrayList<>();
         if (!Objects.equals(nombreAnterior, nombre)) cambios.add("Nombre: " + Objects.toString(nombreAnterior, "—") + " → " + nombre);
         if (rolAnterior != rol) cambios.add("Rol: " + etiquetaRol(rolAnterior) + " → " + etiquetaRol(rol));
+        if (permisoAnterior != permiso) cambios.add(permiso ? "Puede gestionar disponibilidad" : "Ya no gestiona disponibilidad");
         if (!cambios.isEmpty())
             auditoria.registrar(AccionAuditoria.USUARIO_EDITADO, "Usuario", u.getId(),
                 () -> u.getUsername() + " · " + String.join(" · ", cambios));
         if (activoAnterior != activo)
             auditoria.registrar(activo ? AccionAuditoria.USUARIO_ACTIVADO : AccionAuditoria.USUARIO_DESACTIVADO,
                 "Usuario", u.getId(), () -> Objects.toString(u.getNombreCompleto(), "") + " (" + u.getUsername() + ")");
-        if (!esActual && (rolAnterior != rol || !activo)) expirarSesiones(u.getUsername());
+        if (!esActual && (rolAnterior != rol || !activo || permisoAnterior != permiso)) expirarSesiones(u.getUsername());
         return vista(u, UsuarioActual.nombre().orElse(null));
     }
 
@@ -166,7 +171,8 @@ public class UsuarioService {
     private UsuarioVista vista(Usuario u, String actual) {
         return new UsuarioVista(u.getId(), u.getUsername(), u.getNombreCompleto(), u.getRol().name(),
             Boolean.TRUE.equals(u.getActivo()), u.getUltimoAcceso() == null ? null : u.getUltimoAcceso().toString(),
-            u.getUsername().equals(actual), CuentaService.pendientes(u).alguno());
+            u.getUsername().equals(actual), CuentaService.pendientes(u).alguno(),
+            u.getRol() == Rol.ADMIN || (u.getRol() == Rol.COCINA && Boolean.TRUE.equals(u.getGestionaDisponibilidad())));
     }
 
     private String etiquetaRol(Rol rol) {

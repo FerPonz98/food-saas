@@ -84,6 +84,14 @@ Para cambiar el esquema, crea `V4__descripcion.sql` (nunca edites una migración
 
 **División de cuenta:** cada `PagoParcial` descuenta del saldo. Por productos se asignan unidades de cada línea (no se puede pagar dos veces la misma unidad); por partes iguales se cobra `total / n` y la última parte ajusta los centavos; por monto, cualquier valor hasta el saldo. Al llegar a cero el pedido queda pagado; si hubo varios métodos, `metodoPago = DIVIDIDO` y los reportes reparten el monto por método según los pagos parciales. Un pedido con pagos parciales no se cobra con `/pagar`.
 
+**Disponibilidad dinámica:** cada producto tiene `tipoDisponibilidad`: `LIMITADA` (cantidad en `stockDisponible`, se descuenta y llega a «Agotado»), `MANUAL` (sin conteo; `pausado = true` significa «Agotado») o `CONTINUA` (siempre disponible; se puede pausar). Invariante: `LIMITADA` ⇔ `stockDisponible != null`. Reglas:
+- El descuento ocurre **al confirmar** el pedido (mesero lo crea o aprueba un pedido QR) dentro de `PedidoServiceImpl` vía `DisponibilidadService.descontar`, con `UPDATE … WHERE stock >= cantidad` atómico: dos pedidos simultáneos nunca venden de más y si falta stock se revierte toda la transacción (el pedido QR queda pendiente). Si el producto es contado, también descuenta del producto aunque se elija un tamaño; los tamaños con stock propio descuentan además el suyo.
+- Cada `DetallePedido` marca qué descontó (`stockDescontado`, `presentacionDescontada`, `sopaDescontada`). **Anular** (`PUT /api/pedidos/{id}/anular`, con motivo; solo sin cobro ni pagos parciales) repone exactamente esas unidades y limpia las marcas, con el pedido bloqueado: nunca se repone dos veces ni se reponen unidades que no se contaron. `ANULADO` queda fuera de activos, cocina, resumen y reportes, y no se puede cobrar ni ampliar.
+- Productos pausados, agotados o fuera del menú se rechazan en el servidor (mesero y carta QR), no solo en la interfaz.
+- Ajustes, pausas, cambios de modalidad y reposiciones por anulación quedan en `movimiento_disponibilidad` (quién, cuándo, antes → después, motivo).
+- Permiso: autoridad `PERM_DISPONIBILIDAD` (siempre para ADMIN; para COCINA si `usuarios.gestiona_disponibilidad`). Al cambiarlo se cierran las sesiones del usuario. Las rutas `/api/disponibilidad/**` exigen además el módulo `DISPONIBILIDAD` (planes Pro y Premium); sin el módulo el stock sigue protegiendo los pedidos, pero no hay panel en vivo.
+- Tiempo real: `/topic/stock` y `/topic/menu` para personal; la carta QR pública consulta cada 20 s (el WebSocket exige sesión).
+
 **Stock:** al crear o ampliar un pedido se descuenta el stock del tamaño si la línea tiene tamaño y, si no, el del plato; también el del acompañamiento. Los cambios se publican en `/topic/stock`.
 
 ## Convenciones
@@ -100,6 +108,8 @@ Para cambiar el esquema, crea `V4__descripcion.sql` (nunca edites una migración
   - Botones sólidos: `--action-primary` / `--action-accent` con su `-on`.
   - Superficies: `--surface-*`.
   - Los tokens de marca (`--brand-*`) los genera `TemaNegocio` a partir de los colores configurados, con variantes calculadas para claro y oscuro que garantizan el contraste.
+- **Sistema de diseño «Moderno cálido»:** tipografía Plus Jakarta Sans alojada en `static/css/fonts/` (licencia OFL), superficies cálidas y radios/espacios/sombras como tokens (`--radius-*`, `--space-*`, `--elev-*`, `--fs-*`). La guía completa está en la skill del proyecto `.claude/skills/fepzon-ui/SKILL.md`.
+- **Íconos:** sprite SVG de línea en `static/img/iconos.svg` (basado en Lucide, licencia ISC). En plantillas: `<svg th:replace="~{fragments/icono :: i('home')}"></svg>`; en JS: `Icono.crear('home')`. Los emojis quedan solo para contenido del negocio (íconos de categorías).
 - **Modo claro/oscuro:** `data-theme` en `<html>`, aplicado antes de pintar desde `fragments/head.html`; la preferencia se guarda en `localStorage` (`tema`).
 - **Interacción:** todos los `button` y `.btn` tienen elevación y estados hover/press globales; `.flat` los desactiva. Animaciones cortas que respetan `prefers-reduced-motion`.
 - **Formularios del panel:** `Borradores.vincular(form, clave)` guarda lo escrito por usuario y formulario para no perderlo al cambiar de sección.
@@ -146,6 +156,8 @@ Para cambiar el esquema, crea `V4__descripcion.sql` (nunca edites una migración
 | `GET /api/llamados`, `PUT /api/llamados/{id}/confirmar`, `PUT /api/llamados/{id}/atender` | ADMIN, MESERO, `LLAMADOS` | Avisos de las mesas. |
 | `GET /api/solicitudes`, `PUT /api/solicitudes/{id}/aprobar`, `PUT /api/solicitudes/{id}/rechazar` | ADMIN, MESERO, `PEDIDOS_QR` | Pedidos enviados desde la carta. |
 | `GET /api/pedidos/{id}/cuenta`, `POST /api/pedidos/{id}/pagos` | ADMIN, MESERO, `DIVISION_CUENTA` | Cuenta dividida y pagos parciales. |
+| `PUT /api/pedidos/{id}/anular` | ADMIN, MESERO | Anula un pedido sin cobro y repone las unidades contadas. |
+| `GET/PUT /api/disponibilidad/**` | `PERM_DISPONIBILIDAD`, `DISPONIBILIDAD` | Panel en vivo: cantidades, pausa, modalidad e historial del día. |
 | `GET /api/publico/{slug}/carta`, `…/platos/{id}/imagen`, `…/mesa/{n}/wifi` | Público, `CARTA_QR` | Carta, fotos y Wi-Fi. |
 | `GET/POST /api/publico/{slug}/mesa/{n}/llamados` | Público, `LLAMADOS` | Llamar al mesero o pedir la cuenta (límite por dirección IP). |
 | `POST /api/publico/{slug}/mesa/{n}/pedidos`, `GET …/pedidos/{token}` | Público, `PEDIDOS_QR` | Enviar un pedido y consultar su estado. |

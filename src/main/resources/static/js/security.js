@@ -94,3 +94,69 @@ window.confirmAction = function confirmAction(message, opciones = {}) {
         (opciones.peligro ? cancel : accept).focus();
     });
 };
+
+window.pedirMotivo = function pedirMotivo(opciones = {}) {
+    return new Promise(resolve => {
+        const crear = (tag, clase, texto) => {
+            const el = document.createElement(tag);
+            if (clase) el.className = clase;
+            if (texto !== undefined) el.textContent = String(texto);
+            return el;
+        };
+        const dialog = crear("dialog", "dialog-ui dialog-motivo");
+        dialog.setAttribute("aria-labelledby", "dialog-motivo-titulo");
+        const titulo = crear("h2", null, opciones.titulo || "¿Por qué?");
+        titulo.id = "dialog-motivo-titulo";
+        dialog.append(titulo);
+        if (opciones.texto) dialog.append(crear("p", null, opciones.texto));
+        const sugerencias = opciones.sugerencias || [];
+        const campo = crear("input", "field");
+        campo.id = "dialog-motivo-campo";
+        campo.maxLength = 200;
+        campo.autocomplete = "off";
+        campo.placeholder = opciones.placeholder || "Escribe el motivo";
+        if (sugerencias.length) {
+            const chips = crear("div", "dialog-motivo-chips");
+            chips.setAttribute("role", "group");
+            chips.setAttribute("aria-label", "Motivos frecuentes");
+            sugerencias.forEach(s => {
+                const b = crear("button", "dialog-motivo-chip flat", s);
+                b.type = "button";
+                b.setAttribute("aria-pressed", "false");
+                b.addEventListener("click", () => {
+                    campo.value = s;
+                    chips.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+                    error.hidden = true;
+                    accept.focus();
+                });
+                chips.append(b);
+            });
+            dialog.append(chips);
+        }
+        const etiqueta = crear("label", "dialog-motivo-etiqueta", opciones.obligatorio ? "Motivo" : "Motivo (opcional)");
+        etiqueta.htmlFor = campo.id;
+        const error = crear("p", "dialog-motivo-error", "Indica el motivo para continuar.");
+        error.hidden = true;
+        dialog.append(etiqueta, campo, error);
+        const acciones = crear("div", "modal-ui-acciones");
+        const cancel = crear("button", "button-secondary", opciones.cancelar || "Cancelar");
+        cancel.type = "button";
+        const accept = crear("button", opciones.peligro ? "button-danger" : "button-primary", opciones.aceptar || "Confirmar");
+        accept.type = "button";
+        acciones.append(cancel, accept);
+        dialog.append(acciones);
+        const finish = answer => { dialog.close(); dialog.remove(); resolve(answer); };
+        const aceptar = () => {
+            const valor = campo.value.trim();
+            if (opciones.obligatorio && !valor) { error.hidden = false; campo.focus(); return; }
+            finish(valor);
+        };
+        cancel.addEventListener("click", () => finish(null));
+        accept.addEventListener("click", aceptar);
+        campo.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); aceptar(); } });
+        dialog.addEventListener("cancel", event => { event.preventDefault(); finish(null); });
+        document.body.appendChild(dialog);
+        dialog.showModal();
+        (sugerencias.length ? dialog.querySelector(".dialog-motivo-chip") : campo).focus();
+    });
+};

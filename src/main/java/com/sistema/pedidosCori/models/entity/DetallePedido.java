@@ -65,4 +65,19 @@ public class DetallePedido {
     @JoinColumn(name = "presentacion_id", nullable = true)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private PresentacionPlato presentacion;
+
+    @JsonIgnore
+    @Builder.Default
+    @Column(name = "stock_descontado", nullable = false)
+    private Boolean stockDescontado = false;
+
+    @JsonIgnore
+    @Builder.Default
+    @Column(name = "presentacion_descontada", nullable = false)
+    private Boolean presentacionDescontada = false;
+
+    @JsonIgnore
+    @Builder.Default
+    @Column(name = "sopa_descontada", nullable = false)
+    private Boolean sopaDescontada = false;
 }

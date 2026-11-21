@@ -1,0 +1,30 @@
+.dsp-filtros { display: flex; flex-wrap: wrap; gap: var(--space-1); padding: 3px; border-radius: var(--radius-pill); background: var(--surface-raised); }
+.dsp-filtro { min-height: 36px; margin: 0; padding: 0 var(--space-3); border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-muted); font-size: .82rem; font-weight: 700; cursor: pointer; }
+.dsp-filtro[aria-pressed="true"] { background: var(--surface-card); color: var(--text-main); box-shadow: var(--elev-1); }
+.cb-filtros { flex-basis: auto; }
+.cb-numero { font-size: .85rem; font-weight: 700; }
+.cb-vence { display: flex; flex-direction: column; gap: 2px; }
+.cb-acciones { display: flex; flex-wrap: wrap; gap: var(--space-1); justify-content: flex-end; }
+.admin-shell .cb-btn { min-height: 36px; padding: 0 var(--space-3); font-size: .82rem; }
+.admin-shell .cb-anular { color: var(--status-error-text); }
+.cb-badge-bloqueo { background: var(--status-error-soft); color: var(--status-error-text); }
+.cb-precio { width: 110px; min-height: 38px; text-align: right; font-variant-numeric: tabular-nums; }
+.cb-precios-tabla input[type="checkbox"] { width: 20px; height: 20px; }
+
+.pg-resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: var(--space-3); }
+.pg-pendiente { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--status-info-border); background: var(--status-info-soft); color: var(--status-info-text); }
+.pg-pendiente.pg-vencida { border-color: var(--status-error-border); background: var(--status-error-soft); color: var(--status-error-text); }
+.pg-pendiente.pg-aldia { border-color: var(--status-success-border); background: var(--status-success-soft); color: var(--status-success-text); }
+.pg-monto { font-size: var(--fs-2xl); font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.pg-detalle { margin: 0; font-size: .9rem; font-weight: 600; }
+.pg-lineas { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.pg-lineas li { display: flex; justify-content: space-between; gap: var(--space-3); font-size: .9rem; }
+.pg-lineas li span:last-child { font-weight: 700; font-variant-numeric: tabular-nums; }
+.pg-instrucciones { margin: 0; padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--surface-raised); white-space: pre-line; }
+.pg-avisos { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--space-2); }
+.pg-aviso { display: flex; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-raised); font-size: .9rem; }
+.pg-aviso time { flex: none; color: var(--text-muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.pg-aviso-suspendido, .pg-aviso-ultimo_aviso, .pg-aviso-vencida { background: var(--status-error-soft); color: var(--status-error-text); }
+.pg-aviso-pago_recibido { background: var(--status-success-soft); color: var(--status-success-text); }
+.cb-columna { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+.cb-precios-tabla td:first-child { min-width: 180px; }

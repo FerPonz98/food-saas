@@ -20,8 +20,8 @@
         <p class="admin-page-desc"><span id="hoy-fecha">Hoy</span>. Aquí ves cómo va tu día de un vistazo y llegas rápido a lo que necesitas.</p>
       </div>
       <div class="admin-page-actions">
-        <a class="btn button-primary" th:href="@{/admin/menu-hoy}">📋 Menú de hoy</a>
-        <a class="btn button-secondary" th:href="@{/mesero}"><span aria-hidden="true">🧾</span> <span th:text="|Ir a ${negocio.etiquetaRolMesero}|">Ir a atención</span></a>
+        <a class="btn button-primary" th:href="@{/admin/menu-hoy}"><svg th:replace="~{fragments/icono :: i('clipboard')}"></svg> Menú de hoy</a>
+        <a class="btn button-secondary" th:href="@{/mesero}"><svg th:replace="~{fragments/icono :: i('receipt')}"></svg> <span th:text="|Ir a ${negocio.etiquetaRolMesero}|">Ir a atención</span></a>
       </div>
     </header>
 
@@ -32,21 +32,25 @@
       </div>
       <div class="admin-grid" id="inicio-kpis">
         <div class="admin-stat admin-stat-destacado">
+          <span class="admin-stat-ico"><svg th:replace="~{fragments/icono :: i('wallet')}"></svg></span>
           <span class="admin-stat-label">Ventas cobradas hoy</span>
           <strong class="admin-stat-valor" id="kpi-ventas">—</strong>
           <span class="admin-stat-hint">Dinero de los pedidos ya pagados</span>
         </div>
         <div class="admin-stat">
+          <span class="admin-stat-ico"><svg th:replace="~{fragments/icono :: i('bag')}"></svg></span>
           <span class="admin-stat-label">Pedidos de hoy</span>
           <strong class="admin-stat-valor" id="kpi-pedidos">—</strong>
           <span class="admin-stat-hint">Todos los pedidos tomados hoy</span>
         </div>
         <div class="admin-stat">
+          <span class="admin-stat-ico"><svg th:replace="~{fragments/icono :: i('flame')}"></svg></span>
           <span class="admin-stat-label">En curso</span>
           <strong class="admin-stat-valor" id="kpi-activos">—</strong>
           <span class="admin-stat-hint">Pedidos que aún no terminan</span>
         </div>
         <div class="admin-stat">
+          <span class="admin-stat-ico"><svg th:replace="~{fragments/icono :: i('trending')}"></svg></span>
           <span class="admin-stat-label">Ticket promedio</span>
           <strong class="admin-stat-valor" id="kpi-ticket">—</strong>
           <span class="admin-stat-hint">Lo que gasta, en promedio, cada pedido cobrado</span>
@@ -84,19 +88,19 @@
             <li id="paso-menu">
               <a th:href="@{/admin/menu-hoy}">
                 <span class="admin-step-texto"><strong>Revisa y publica el menú de hoy</strong><span id="paso-menu-detalle">Elige qué vendes hoy y cuántas porciones tienes.</span></span>
-                <span class="admin-step-flecha" aria-hidden="true">›</span>
+                <span class="admin-step-flecha"><svg th:replace="~{fragments/icono :: i('chevron-right')}"></svg></span>
               </a>
             </li>
             <li>
               <a th:href="@{/admin/local}">
                 <span class="admin-step-texto"><strong th:text="|Confirma la cantidad de ${#strings.toLowerCase(negocio.puntoAtencionPlural)}|">Confirma cuántas mesas tienes</strong><span>Así tu personal verá las correctas.</span></span>
-                <span class="admin-step-flecha" aria-hidden="true">›</span>
+                <span class="admin-step-flecha"><svg th:replace="~{fragments/icono :: i('chevron-right')}"></svg></span>
               </a>
             </li>
             <li>
               <a th:href="@{/admin/usuarios}">
                 <span class="admin-step-texto"><strong>Revisa que tu personal tenga acceso</strong><span>Usuarios y contraseñas de quienes trabajan hoy.</span></span>
-                <span class="admin-step-flecha" aria-hidden="true">›</span>
+                <span class="admin-step-flecha"><svg th:replace="~{fragments/icono :: i('chevron-right')}"></svg></span>
               </a>
             </li>
           </ol>
@@ -109,12 +113,12 @@
           <p>Lo que más se usa, a un toque.</p>
         </div>
         <div class="admin-card-body inicio-accesos">
-          <a class="btn button-secondary" th:href="@{/admin/menu-hoy}"><span aria-hidden="true">📋</span> Menú de hoy</a>
-          <a class="btn button-secondary" th:href="@{/mesero}"><span aria-hidden="true">🧾</span> <span th:text="${negocio.etiquetaRolMesero}">Atención</span></a>
-          <a class="btn button-secondary" th:href="@{/cocina}"><span aria-hidden="true">🍳</span> <span th:text="${negocio.etiquetaRolCocina}">Preparación</span></a>
-          <a class="btn button-secondary" th:href="@{/admin/actividad}"><span aria-hidden="true">🕒</span> Actividad</a>
-          <a class="btn button-secondary" th:href="@{/admin/usuarios}"><span aria-hidden="true">👥</span> Usuarios</a>
-          <a class="btn button-secondary" th:href="@{/admin/apariencia}"><span aria-hidden="true">🎨</span> Apariencia</a>
+          <a class="btn button-secondary inicio-acceso" th:href="@{/admin/menu-hoy}"><svg th:replace="~{fragments/icono :: i('clipboard')}"></svg> Menú de hoy</a>
+          <a class="btn button-secondary inicio-acceso" th:href="@{/mesero}"><svg th:replace="~{fragments/icono :: i('receipt')}"></svg> <span th:text="${negocio.etiquetaRolMesero}">Atención</span></a>
+          <a class="btn button-secondary inicio-acceso" th:href="@{/cocina}"><svg th:replace="~{fragments/icono :: i('chef')}"></svg> <span th:text="${negocio.etiquetaRolCocina}">Preparación</span></a>
+          <a class="btn button-secondary inicio-acceso" th:href="@{/admin/actividad}"><svg th:replace="~{fragments/icono :: i('history')}"></svg> Actividad</a>
+          <a class="btn button-secondary inicio-acceso" th:href="@{/admin/usuarios}"><svg th:replace="~{fragments/icono :: i('users')}"></svg> Usuarios</a>
+          <a class="btn button-secondary inicio-acceso" th:href="@{/admin/apariencia}"><svg th:replace="~{fragments/icono :: i('palette')}"></svg> Apariencia</a>
         </div>
       </section>
     </div>

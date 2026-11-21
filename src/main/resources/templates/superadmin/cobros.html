@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cobros — Plataforma</title>
+  <th:block th:replace="~{fragments/head :: branding}"></th:block>
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+  <link rel="stylesheet" th:href="@{/css/superadmin.css}">
+  <link rel="stylesheet" th:href="@{/css/cobros.css}">
+  <script defer th:src="@{/js/security.js}"></script>
+  <script defer th:src="@{/js/admin-shell.js}"></script>
+  <script defer th:src="@{/js/superadmin-cobros.js}"></script>
+</head>
+<body class="admin-shell">
+  <div th:replace="~{fragments/superadmin-layout :: barra('cobros')}"></div>
+  <main class="admin-main" id="contenido" tabindex="-1">
+    <header class="admin-page-head">
+      <div>
+        <h1>Cobros</h1>
+        <p class="admin-page-desc">Las facturas se emiten solas antes del vencimiento (plan + módulos extra). Cada día el sistema avisa al negocio y, si se pasa el plazo de gracia, suspende el acceso hasta que registres el pago.</p>
+      </div>
+      <div class="admin-page-actions">
+        <button type="button" class="button-secondary" id="cb-ejecutar"><svg th:replace="~{fragments/icono :: i('refresh')}"></svg> Revisar cobros ahora</button>
+        <button type="button" class="button-primary" id="cb-emitir"><svg th:replace="~{fragments/icono :: i('receipt')}"></svg> Emitir factura</button>
+      </div>
+    </header>
+
+    <section aria-labelledby="cb-kpis-titulo">
+      <h2 class="visually-hidden" id="cb-kpis-titulo">Resumen</h2>
+      <div class="admin-grid" id="cb-kpis"></div>
+    </section>
+
+    <section class="admin-card" aria-labelledby="cb-facturas-titulo">
+      <div class="admin-card-head">
+        <h2 id="cb-facturas-titulo">Facturas</h2>
+        <div class="dsp-filtros cb-filtros" role="group" aria-label="Filtrar facturas" id="cb-filtros">
+          <button type="button" class="dsp-filtro flat" data-estado="" aria-pressed="true">Todas</button>
+          <button type="button" class="dsp-filtro flat" data-estado="PENDIENTE" aria-pressed="false">Pendientes</button>
+          <button type="button" class="dsp-filtro flat" data-estado="VENCIDA" aria-pressed="false">Vencidas</button>
+          <button type="button" class="dsp-filtro flat" data-estado="PAGADA" aria-pressed="false">Pagadas</button>
+          <button type="button" class="dsp-filtro flat" data-estado="ANULADA" aria-pressed="false">Anuladas</button>
+        </div>
+      </div>
+      <div class="admin-card-body">
+        <div class="admin-table-wrap" id="cb-facturas"></div>
+      </div>
+    </section>
+
+    <div class="cb-columna">
+      <section class="admin-card" aria-labelledby="cb-reglas-titulo">
+        <div class="admin-card-head">
+          <h2 id="cb-reglas-titulo">Reglas de cobro</h2>
+          <p>Cuándo se emite la factura, cuándo se avisa y cuándo se bloquea.</p>
+        </div>
+        <form class="admin-card-body admin-form-grid" id="cb-reglas" novalidate>
+          <div class="admin-field">
+            <label for="cb-diasGeneracion">Emitir factura (días antes)</label>
+            <input class="field" id="cb-diasGeneracion" name="diasGeneracion" type="number" min="0" max="60" inputmode="numeric">
+          </div>
+          <div class="admin-field">
+            <label for="cb-diasRecordatorio">Recordar desde (días antes)</label>
+            <input class="field" id="cb-diasRecordatorio" name="diasRecordatorio" type="number" min="0" max="60" inputmode="numeric">
+          </div>
+          <div class="admin-field">
+            <label for="cb-diasGracia">Días de gracia tras vencer</label>
+            <input class="field" id="cb-diasGracia" name="diasGracia" type="number" min="0" max="60" inputmode="numeric">
+            <p class="admin-help">Pasados estos días sin pago, se suspende el acceso.</p>
+          </div>
+          <label class="sa-check">
+            <input type="checkbox" name="suspensionAutomatica">
+            <span>Suspender automáticamente por falta de pago</span>
+          </label>
+          <div class="admin-field admin-campo-ancho">
+            <label for="cb-instrucciones">Instrucciones de pago (las ve el negocio)</label>
+            <textarea class="field" id="cb-instrucciones" name="instruccionesPago" maxlength="1000" rows="3"></textarea>
+          </div>
+          <div class="admin-campo-ancho">
+            <button type="submit" class="button-primary">Guardar reglas</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+      <section class="admin-card" aria-labelledby="cb-precios-titulo">
+        <div class="admin-card-head">
+          <h2 id="cb-precios-titulo">Precios de módulos extra</h2>
+          <p>Se cobran cuando activas un módulo a un negocio cuyo plan no lo incluye (en Negocios → Gestionar → Módulos).</p>
+        </div>
+        <div class="admin-card-body">
+          <div class="admin-table-wrap" id="cb-precios"></div>
+        </div>
+      </section>
+  </main>
+</body>
+</html>

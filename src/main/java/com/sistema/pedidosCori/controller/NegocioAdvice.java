@@ -1,5 +1,7 @@
 package com.sistema.pedidosCori.controller;
 
+import com.sistema.pedidosCori.service.CobranzaService;
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
@@ -21,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class NegocioAdvice {
     private final ConfiguracionNegocioService service;
     private final ModuloService modulos;
+    private final CobranzaService cobranza;
 
     @ModelAttribute
     public void negocio(Model model) {
@@ -30,7 +33,14 @@ public class NegocioAdvice {
         StringBuilder css = new StringBuilder(":root{");
         vista.getTema().forEach((clave, valor) -> css.append(clave).append(':').append(valor).append(';'));
         model.addAttribute("temaCss", css.append('}').toString());
-        model.addAttribute("avisoSuscripcion", modulos.actual().map(NegocioAdvice::aviso).orElse(null));
+        CobranzaService.AvisoBanner banner = esAdministrador() ? modulos.actual().map(i -> cobranza.banner(i.id())).orElse(null) : null;
+        model.addAttribute("avisoSuscripcion", banner == null ? modulos.actual().map(NegocioAdvice::aviso).orElse(null) : banner.texto());
+        model.addAttribute("avisoSuscripcionNivel", banner == null ? "warning" : banner.nivel());
+    }
+
+    private static boolean esAdministrador() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
     private static String aviso(ModuloService.InfoNegocio info) {

@@ -25,6 +25,8 @@ Los planes vienen cargados según la propuesta comercial y se pueden editar en *
 | `CARTA_QR` | Carta pública, QR por mesa y Wi-Fi visible | — | ✓ | ✓ |
 | `LLAMADOS` | «Llamar al mesero» y «Pedir la cuenta» desde la mesa, con confirmación del mesero | — | ✓ | ✓ |
 | `PEDIDOS_QR` | El cliente arma su pedido en la carta y el mesero lo aprueba antes de enviarlo a cocina | — | ✓ | ✓ |
+| `FOTOS_ANIMADAS` | Fotos de platos en GIF animado (hasta 3 MB) en carta, catálogo y mesero; sin el módulo se muestran fijas | — | — | ✓ |
+| `DISPONIBILIDAD` | Cocina sube, baja, pausa y reactiva productos en vivo; permiso «Gestionar disponibilidad» por usuario e historial de cambios | — | ✓ | ✓ |
 | `DIVISION_CUENTA` | Cobrar una cuenta por productos, por partes iguales o por monto, con varios métodos de pago | — | ✓ | ✓ |
 | `REPORTES_COMPLETOS` | Reportes por día, semana y mes, productos más vendidos y ventas por persona | — | ✓ | ✓ |
 | `REPORTES_AVANZADOS` | Comparación con el período anterior, horarios y exportación a Excel | — | — | ✓ |
@@ -89,3 +91,13 @@ Todos los cambios quedan en el historial de la plataforma. Los cambios de suscri
 ## 6. El negocio que ya existía
 
 Al actualizar una instalación anterior, sus datos se asignan al negocio **principal** (dirección `principal`) con plan **Premium**, para que no pierda ninguna función. Las direcciones antiguas `/carta` y `/mesa/<número>` redirigen a la carta de ese negocio.
+
+
+## Cobros y suspensión por falta de pago
+
+- **Precios de módulos extra** (`modulo_precio`): si el superadmin activa a un negocio un módulo que su plan no incluye, se cobra como línea aparte en la factura. Los módulos del plan nunca se cobran dos veces.
+- **Facturas** (`factura`, `factura_linea`): una por periodo (desde `negocio.vence_en`, mensual o anual). Se emiten solas `dias_generacion` días antes, o a mano desde *Cobros*. Número `F-AAAA-NNNNNN`.
+- **Cobranza diaria** (07:00 y al arrancar; también con «Revisar cobros ahora»): recordatorio antes de vencer → «vencida» cada día → «último aviso» → al superar `dias_gracia`, `SUSPENDIDO` con `motivo_suspension = FALTA_DE_PAGO`. Los avisos quedan en `aviso_cobro` (uno por tipo y día) y el negocio los ve en *Mi plan* y en el banner del panel.
+- **Pago**: al registrarlo, la factura queda `PAGADA`, `vence_en` avanza al fin del periodo y, si estaba suspendido por falta de pago, se reactiva solo. Una suspensión manual (`MANUAL`) nunca se levanta automáticamente.
+- Reglas editables en *Superadmin → Cobros*: días de emisión, de recordatorio, de gracia, suspensión automática e instrucciones de pago. Los negocios sin fecha de vencimiento no se facturan.
+- Los avisos son dentro del sistema; no se envían correos ni WhatsApp.

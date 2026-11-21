@@ -182,10 +182,10 @@
     gap: var(--space-2);
     min-width: 0;
     font-size: .82rem;
-    font-weight: 900;
+    font-weight: 800;
     color: var(--brand-primary-text);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: .08em;
 }
 
 .cat-nombre {
@@ -423,7 +423,7 @@
 
 .plato-precio {
     font-size: .8rem;
-    font-weight: 900;
+    font-weight: 800;
     color: var(--brand-accent-text);
 }
 
@@ -432,7 +432,7 @@
     font-size: .68rem;
     font-weight: 800;
     padding: 1px 6px;
-    border-radius: 5px;
+    border-radius: var(--radius-xs);
     border: 1px solid var(--border-main);
     background: var(--surface-raised);
     color: var(--text-muted);
@@ -468,11 +468,11 @@
     height: 44px;
     padding: 0;
     border: 1px solid var(--action-accent);
-    border-radius: 6px;
+    border-radius: var(--radius-xs);
     background: var(--action-accent);
     color: var(--action-accent-on);
     font-size: 1.05rem;
-    font-weight: 900;
+    font-weight: 800;
     line-height: 1;
 }
 
@@ -480,7 +480,7 @@
     min-height: 44px;
     padding: 0 12px;
     border: 1px solid var(--border-strong);
-    border-radius: 6px;
+    border-radius: var(--radius-xs);
     background: var(--surface-card);
     color: var(--text-main);
     font-size: .82rem;
@@ -510,12 +510,12 @@
     height: 44px;
     text-align: center;
     font-size: 1rem;
-    font-weight: 900;
+    font-weight: 800;
     font-variant-numeric: tabular-nums;
     color: var(--text-main);
     background: var(--surface-card);
     border: 1px solid var(--border-strong);
-    border-radius: 6px;
+    border-radius: var(--radius-xs);
 }
 
 .plato-actions {
@@ -735,8 +735,8 @@
 
 .mc-title {
     font-size: 96px;
-    font-weight: 900;
-    letter-spacing: 1px;
+    font-weight: 800;
+    letter-spacing: .08em;
     color: var(--brand-accent);
     margin: 0;
     line-height: 1.05;
@@ -753,7 +753,7 @@
 }
 
 .mc-subtitle {
-    font-weight: 900;
+    font-weight: 800;
     font-size: 38px;
     color: var(--brand-accent);
     margin-top: 15px;
@@ -776,7 +776,7 @@
 .mc-cat-title {
     font-size: 38px;
     color: var(--brand-accent);
-    font-weight: 900;
+    font-weight: 800;
     margin-bottom: 15px;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -837,7 +837,7 @@
     object-fit: contain;
     flex-shrink: 0;
     padding: 12px;
-    border-radius: 24px;
+    border-radius: var(--radius-xl);
     background: var(--ink-light);
 }
 
@@ -846,7 +846,7 @@
     text-align: right;
     color: var(--brand-accent-on-hover);
     font-size: 34px;
-    font-weight: 900;
+    font-weight: 800;
     line-height: 1.3;
 }
 

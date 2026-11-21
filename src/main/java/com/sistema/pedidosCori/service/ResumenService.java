@@ -38,7 +38,8 @@ public class ResumenService {
     public ResumenHoy hoy() {
         LocalDate hoy = LocalDate.now();
         List<Pedido> pedidos = pedidoDao.findByFechaCreacionGreaterThanEqualAndFechaCreacionLessThan(
-            hoy.atStartOfDay(), hoy.plusDays(1).atStartOfDay());
+            hoy.atStartOfDay(), hoy.plusDays(1).atStartOfDay()).stream()
+            .filter(p -> p.getEstado() != EstadoPedido.ANULADO).toList();
         Map<Long, Pedido> cobrados = new LinkedHashMap<>();
         pedidoDao.findByPagadoTrueAndFechaPagoGreaterThanEqualAndFechaPagoLessThan(hoy.atStartOfDay(), hoy.plusDays(1).atStartOfDay())
             .forEach(p -> cobrados.put(p.getId(), p));
@@ -79,7 +80,7 @@ public class ResumenService {
             .thenComparing(VentasEmpleado::usuario));
 
         return new ResumenHoy(hoy.toString(), redondear(ventas), pedidos.size(),
-            pedidoDao.countByEstadoNotOrPagadoFalse(EstadoPedido.ENTREGADO), redondear(ticket),
+            pedidoDao.contarActivos(EstadoPedido.ENTREGADO, EstadoPedido.ANULADO), redondear(ticket),
             platoDao.countByDisponibleTrueAndArchivadoFalse(), top, porEmpleado);
     }
 

@@ -64,6 +64,38 @@ public class LogoValidator {
         return validar(archivo, FOTO);
     }
 
+    public static final int MAX_BYTES_GIF = 3 * 1_048_576;
+    public static final int MAX_DIMENSION_GIF = 2048;
+
+    public static boolean esGif(byte[] bytes) {
+        return bytes != null && bytes.length >= 6 && bytes[0] == 'G' && bytes[1] == 'I' && bytes[2] == 'F'
+            && bytes[3] == '8' && (bytes[4] == '7' || bytes[4] == '9') && bytes[5] == 'a';
+    }
+
+    public LogoValidado validarFotoAnimada(MultipartFile archivo) {
+        if (archivo == null || archivo.isEmpty()) throw new IllegalArgumentException("Selecciona una foto");
+        if (archivo.getSize() > MAX_BYTES_GIF) throw new IllegalArgumentException("La foto animada (GIF) no puede superar 3 MB");
+        try {
+            byte[] bytes = archivo.getBytes();
+            if (bytes.length > MAX_BYTES_GIF) throw new IllegalArgumentException("La foto animada (GIF) no puede superar 3 MB");
+            if (!esGif(bytes) || bytes.length < 14 || (bytes[bytes.length - 1] & 255) != 0x3B)
+                throw new IllegalArgumentException("El archivo no es un GIF válido");
+            String declarado = archivo.getContentType() == null ? "" : archivo.getContentType().split(";", 2)[0].trim().toLowerCase(Locale.ROOT);
+            if (!declarado.isEmpty() && !declarado.equals("image/gif") && !declarado.equals("application/octet-stream"))
+                throw new IllegalArgumentException("El tipo declarado no coincide con el contenido de la foto");
+            String nombre = archivo.getOriginalFilename();
+            String extension = nombre == null || !nombre.contains(".") ? "" : nombre.substring(nombre.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
+            if (!extension.isEmpty() && !extension.equals("gif")) throw new IllegalArgumentException("La extensión no coincide con el tipo real de la foto");
+            int ancho = u16(bytes, 6);
+            int alto = u16(bytes, 8);
+            if (ancho < 1 || alto < 1 || ancho > MAX_DIMENSION_GIF || alto > MAX_DIMENSION_GIF)
+                throw new IllegalArgumentException("La foto animada no puede superar " + MAX_DIMENSION_GIF + " × " + MAX_DIMENSION_GIF + " píxeles");
+            return new LogoValidado(Arrays.copyOf(bytes, bytes.length), "image/gif");
+        } catch (IOException ex) {
+            throw new IllegalArgumentException("No se pudo leer la foto", ex);
+        }
+    }
+
     private LogoValidado validar(MultipartFile archivo, Textos t) {
         if (archivo == null || archivo.isEmpty()) throw new IllegalArgumentException(t.seleccionar());
         if (archivo.getSize() > MAX_BYTES) throw new IllegalArgumentException(t.tamano());

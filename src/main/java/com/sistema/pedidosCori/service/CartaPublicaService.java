@@ -30,7 +30,8 @@ public class CartaPublicaService {
     }
 
     public record PlatoPublico(Long id, String nombre, String descripcion, Double precio, String categoria,
-            Boolean disponible, Integer stockDisponible, String imagenUrl, List<PresentacionPublica> presentaciones) {
+            Boolean disponible, Integer stockDisponible, String imagenUrl, List<PresentacionPublica> presentaciones,
+            Boolean pausado) {
     }
 
     public record CartaPublica(List<CategoriaPublica> categorias, List<PlatoPublico> platos) {
@@ -75,6 +76,6 @@ public class CartaPublicaService {
         String imagen = p.getImagenVersion() == null ? null
             : "/api/publico/" + slug + "/platos/" + p.getId() + "/imagen?v=" + p.getImagenVersion();
         return new PlatoPublico(p.getId(), p.getNombre(), p.getDescripcion(), p.getPrecio(), p.getCategoria(),
-            p.getDisponible(), p.getStockDisponible(), imagen, pres);
+            p.getDisponible(), p.getStockDisponible(), imagen, pres, Boolean.TRUE.equals(p.getPausado()));
     }
 }

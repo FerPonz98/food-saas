@@ -49,7 +49,7 @@
       <section class="admin-card" aria-labelledby="titulo-nombres">
         <div class="admin-card-head">
           <h2 id="titulo-nombres">¿Cómo llamas a tus mesas?</h2>
-            <p class="admin-help plan-bloqueado" th:unless="${modulos.contains('APARIENCIA_AVANZADA')}">🔒 Los nombres de mesas y del personal se personalizan desde el plan Pro. <a th:href="@{/admin/plan(modulo='APARIENCIA_AVANZADA')}">Ver mi plan</a></p>
+            <p class="admin-help plan-bloqueado" th:unless="${modulos.contains('APARIENCIA_AVANZADA')}"><svg th:replace="~{fragments/icono :: i('lock')}"></svg> Los nombres de mesas y del personal se personalizan desde el plan Pro. <a th:href="@{/admin/plan(modulo='APARIENCIA_AVANZADA')}">Ver mi plan</a></p>
           <p>Ej.: Mesa, Mostrador, Cabina. Escribe el nombre para una y para varias.</p>
         </div>
         <div class="admin-card-body">

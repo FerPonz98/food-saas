@@ -202,10 +202,13 @@ public class SolicitudPedidoService {
         Plato plato = platos.findById(i.platoId())
             .filter(p -> Boolean.TRUE.equals(p.getDisponible()) && !Boolean.TRUE.equals(p.getArchivado()))
             .orElseThrow(() -> new IllegalArgumentException("Un producto ya no está disponible. Actualiza la carta."));
+        if (!DisponibilidadService.vendible(plato))
+            throw new IllegalArgumentException(plato.getNombre() + " está agotado. Quítalo de tu pedido.");
         PresentacionPlato pres = null;
         if (i.presentacionId() != null) {
             pres = presentaciones.findById(i.presentacionId())
                 .filter(pr -> pr.getPlato().getId().equals(plato.getId()) && Boolean.TRUE.equals(pr.getDisponible())
+                    && (pr.getStockDisponible() == null || pr.getStockDisponible() > 0)
                     && pr.getModalidad() != Modalidad.LLEVAR)
                 .orElseThrow(() -> new IllegalArgumentException("El tamaño elegido de " + plato.getNombre() + " no está disponible"));
         } else if (plato.getPresentaciones() != null && plato.getPresentaciones().stream()

@@ -17,6 +17,10 @@
             La suscripción de <strong th:text="${negocio.nombreNegocio}">tu negocio</strong> está suspendida, por eso el sistema no está disponible por ahora.
         </p>
         <p class="cuenta-intro">Tus datos se conservan completos. En cuanto se reactive la suscripción podrás seguir trabajando como siempre.</p>
+        <div class="msg message-error suspendido-pago" th:if="${pagoPendiente != null}">
+            <strong th:text="|Pago pendiente: Bs ${pagoPendiente.total}|">Pago pendiente</strong>
+            <span th:text="|Factura ${pagoPendiente.numero}, vencida el ${#temporals.format(pagoPendiente.venceEn, 'dd/MM/yyyy')}. Al registrarse el pago, el acceso se reactiva solo.|"></span>
+        </div>
         <p class="cuenta-intro">Si eres el dueño o administrador, comunícate con soporte para regularizarla.</p>
         <form th:action="@{/logout}" method="post">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">

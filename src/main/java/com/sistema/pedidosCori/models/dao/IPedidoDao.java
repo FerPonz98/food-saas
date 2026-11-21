@@ -28,7 +28,11 @@ public interface IPedidoDao extends JpaRepository<Pedido, Long> {
     List<Pedido> findByFechaCreacionGreaterThanEqualAndFechaCreacionLessThan(LocalDateTime desde, LocalDateTime hasta);
     List<Pedido> findByPagadoTrueAndFechaPagoGreaterThanEqualAndFechaPagoLessThan(LocalDateTime desde, LocalDateTime hasta);
 
-    long countByEstadoNotOrPagadoFalse(EstadoPedido estado);
+    @Query("SELECT p FROM Pedido p WHERE p.estado <> :anulado AND (p.estado <> :entregado OR p.pagado = false) ORDER BY p.fechaCreacion ASC")
+    List<Pedido> findActivos(@Param("entregado") EstadoPedido entregado, @Param("anulado") EstadoPedido anulado);
+
+    @Query("SELECT COUNT(p) FROM Pedido p WHERE p.estado <> :anulado AND (p.estado <> :entregado OR p.pagado = false)")
+    long contarActivos(@Param("entregado") EstadoPedido entregado, @Param("anulado") EstadoPedido anulado);
 
     @Query("SELECT DISTINCT p FROM Pedido p LEFT JOIN FETCH p.detalles d LEFT JOIN FETCH d.plato LEFT JOIN FETCH d.presentacion " +
         "WHERE p.pagado = true AND ((p.fechaPago >= :desde AND p.fechaPago < :hasta) " +
@@ -36,7 +40,7 @@ public interface IPedidoDao extends JpaRepository<Pedido, Long> {
     List<Pedido> findCobradosEntre(@Param("desde") LocalDateTime desde, @Param("hasta") LocalDateTime hasta);
 
     @Query("SELECT p.registradoPor, p.pagado, p.total FROM Pedido p " +
-        "WHERE p.fechaCreacion >= :desde AND p.fechaCreacion < :hasta")
+        "WHERE p.fechaCreacion >= :desde AND p.fechaCreacion < :hasta AND p.estado <> com.sistema.pedidosCori.models.entity.EstadoPedido.ANULADO")
     List<Object[]> findRegistradosEntre(@Param("desde") LocalDateTime desde, @Param("hasta") LocalDateTime hasta);
 
     @Query("SELECT DISTINCT p.numeroMesa FROM Pedido p " +
@@ -45,7 +49,7 @@ public interface IPedidoDao extends JpaRepository<Pedido, Long> {
         "AND p.numeroMesa IS NOT NULL")
     List<Integer> findMesasOcupadas(@Param("estados") List<EstadoPedido> estados);
 
-    @Query("SELECT p.negocioId, COUNT(p) FROM Pedido p WHERE p.fechaCreacion >= :desde GROUP BY p.negocioId")
+    @Query("SELECT p.negocioId, COUNT(p) FROM Pedido p WHERE p.fechaCreacion >= :desde AND p.estado <> com.sistema.pedidosCori.models.entity.EstadoPedido.ANULADO GROUP BY p.negocioId")
     List<Object[]> contarDesdePorNegocio(@Param("desde") LocalDateTime desde);
 
     List<Pedido> findByNumeroMesaAndPagadoFalseAndEstadoInOrderByFechaCreacionAsc(Integer mesa, List<EstadoPedido> estados);

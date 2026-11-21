@@ -19,6 +19,17 @@ public interface IPresentacionPlatoDao extends JpaRepository<PresentacionPlato, 
     @Query("UPDATE PresentacionPlato pp SET pp.stockDisponible = pp.stockDisponible - :cantidad WHERE pp.id = :id AND pp.stockDisponible >= :cantidad")
     int descontarStockPreciso(@Param("id") Long id, @Param("cantidad") Integer cantidad);
 
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT pp FROM PresentacionPlato pp WHERE pp.id = :id")
+    java.util.Optional<PresentacionPlato> findByIdForUpdate(@Param("id") Long id);
+
+    @Modifying
+    @Query("UPDATE PresentacionPlato pp SET pp.stockDisponible = pp.stockDisponible + :cantidad WHERE pp.id = :id AND pp.stockDisponible IS NOT NULL")
+    int reponerStock(@Param("id") Long id, @Param("cantidad") Integer cantidad);
+
+    @Query("SELECT pp.stockDisponible FROM PresentacionPlato pp WHERE pp.id = :id")
+    Integer stockActual(@Param("id") Long id);
+
     List<PresentacionPlato> findByPlatoIdAndDisponibleTrueAndModalidadIn(
         Long platoId,
         List<Modalidad> modalidades

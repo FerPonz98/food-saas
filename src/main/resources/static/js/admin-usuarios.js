@@ -252,6 +252,7 @@
             const estado = crear('div', 'usr-estado');
             estado.append(crear('span', u.activo ? 'badge badge-ok' : 'badge badge-off', u.activo ? 'Activo' : 'Desactivado'));
             if (u.activo && u.primerIngresoPendiente) estado.append(crear('span', 'badge badge-warn', 'Primer ingreso pendiente'));
+            if (u.rol === 'COCINA' && u.gestionaDisponibilidad) estado.append(crear('span', 'badge badge-info', 'Gestiona disponibilidad'));
             celda('Estado', estado);
             const acceso = ultimoAcceso(u.ultimoAcceso);
             const t = crear('span', null, acceso.texto);
@@ -380,7 +381,8 @@
             username: form.elements.username ? form.elements.username.value.trim() : '',
             rol: rol ? rol.value : '',
             password: form.elements.password ? form.elements.password.value : '',
-            activo: form.elements.activo ? form.elements.activo.checked : true
+            activo: form.elements.activo ? form.elements.activo.checked : true,
+            gestionaDisponibilidad: !!(rol && rol.value === 'COCINA' && form.elements.gestionaDisponibilidad && form.elements.gestionaDisponibilidad.checked)
         };
     }
 
@@ -415,6 +417,7 @@
             const radio = form.querySelector(`input[name="rol"][value="${usuario.rol}"]`);
             if (radio) radio.checked = true;
             form.elements.activo.checked = !!usuario.activo;
+            if (form.elements.gestionaDisponibilidad) form.elements.gestionaDisponibilidad.checked = usuario.rol === 'COCINA' && !!usuario.gestionaDisponibilidad;
             const r = restricciones(usuario);
             if (r.bloqueado) {
                 form.querySelectorAll('input[name="rol"]').forEach(x => { if (x.value !== 'ADMIN') x.disabled = true; });
@@ -466,6 +469,14 @@
             if (objetivo.name && form.querySelector(`[data-error="${objetivo.name}"]`)) mostrarError(form, objetivo.name, '');
         });
         form.addEventListener('change', () => { tocado = true; });
+        const permiso = form.querySelector('[data-permiso-disponibilidad]');
+        const mostrarPermiso = () => {
+            if (!permiso) return;
+            const rol = form.querySelector('input[name="rol"]:checked');
+            permiso.hidden = !(rol && rol.value === 'COCINA');
+        };
+        form.querySelectorAll('input[name="rol"]').forEach(r => r.addEventListener('change', mostrarPermiso));
+        mostrarPermiso();
 
         const borrador = borradores().vincular(form, clave, { excluir: ['password'], alRestaurar: () => { tocado = true; sincronizar(); } });
         if (borrador.restaurado) { tocado = true; sincronizar(); }
@@ -523,7 +534,8 @@
                 { etiqueta: 'Rol', valor: etiquetaRol(v.rol) }
             ];
             if (!nuevo) resumen.push({ etiqueta: 'Estado', valor: v.activo ? 'Activa' : 'Desactivada' });
-            const cambiaAcceso = !nuevo && (v.rol !== usuario.rol || (usuario.activo && !v.activo));
+            if (v.rol === 'COCINA' && form.elements.gestionaDisponibilidad) resumen.push({ etiqueta: 'Disponibilidad', valor: v.gestionaDisponibilidad ? 'Puede gestionarla' : 'No' });
+            const cambiaAcceso = !nuevo && (v.rol !== usuario.rol || (usuario.activo && !v.activo) || (v.rol === 'COCINA' && !!usuario.gestionaDisponibilidad !== v.gestionaDisponibilidad));
             const ok = await confirmar(
                 nuevo ? 'Revisa que los datos estén bien antes de crear la cuenta.'
                     : (cambiaAcceso ? 'La persona tendrá que volver a entrar para usar su nueva configuración.' : 'Se guardarán los cambios.'),
@@ -535,12 +547,12 @@
             guardar.disabled = true;
             try {
                 if (nuevo) {
-                    const creado = await pedir(API, { method: 'POST', body: { username: v.username, nombreCompleto: v.nombreCompleto, rol: v.rol, password: v.password } });
+                    const creado = await pedir(API, { method: 'POST', body: { username: v.username, nombreCompleto: v.nombreCompleto, rol: v.rol, password: v.password, gestionaDisponibilidad: v.gestionaDisponibilidad } });
                     borrador.limpiar();
                     mostrarCredenciales('Cuenta creada', `Entrégale estos datos a ${v.nombreCompleto}. Es una contraseña temporal: al entrar por primera vez deberá cambiarla por una propia.`, (creado && creado.username) || v.username, v.password);
                     aviso('Cuenta creada correctamente.', 'ok');
                 } else {
-                    await pedir(`${API}/${encodeURIComponent(usuario.id)}`, { method: 'PUT', body: { nombreCompleto: v.nombreCompleto, rol: v.rol, activo: v.activo } });
+                    await pedir(`${API}/${encodeURIComponent(usuario.id)}`, { method: 'PUT', body: { nombreCompleto: v.nombreCompleto, rol: v.rol, activo: v.activo, gestionaDisponibilidad: v.gestionaDisponibilidad } });
                     borrador.limpiar();
                     cerrarDialogo();
                     aviso('Cambios guardados.', 'ok');

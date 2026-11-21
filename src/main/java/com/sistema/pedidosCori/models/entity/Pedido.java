@@ -93,6 +93,15 @@ public class Pedido {
     @Column(name = "fecha_pago")
     private LocalDateTime fechaPago;
 
+    @Column(name = "anulado_en")
+    private LocalDateTime anuladoEn;
+
+    @Column(name = "anulado_por", length = 60)
+    private String anuladoPor;
+
+    @Column(name = "motivo_anulacion", length = 200)
+    private String motivoAnulacion;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonIgnoreProperties("pedido")
     private List<DetallePedido> detalles;

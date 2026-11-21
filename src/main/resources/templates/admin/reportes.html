@@ -21,7 +21,7 @@
         <p class="admin-page-desc">Mira cómo le va a tu negocio: cuánto vendiste, qué se vende más, en qué horarios y quién de tu equipo atiende más.</p>
       </div>
       <div class="admin-page-actions">
-        <button type="button" class="button-secondary" id="rep-actualizar"><span aria-hidden="true">🔄</span> Actualizar</button>
+        <button type="button" class="button-secondary" id="rep-actualizar"><svg th:replace="~{fragments/icono :: i('refresh')}"></svg> Actualizar</button>
       </div>
     </header>
 
@@ -51,12 +51,12 @@
           <button type="submit" class="button-primary">Aplicar</button>
           <p class="admin-error rep-error-rango" id="rep-error-rango" role="alert"></p>
         </form>
-        <p class="rep-rango"><span aria-hidden="true">📅</span> <strong id="rep-rango-texto" aria-live="polite"></strong></p>
+        <p class="rep-rango"><svg th:replace="~{fragments/icono :: i('clock')}"></svg> <strong id="rep-rango-texto" aria-live="polite"></strong></p>
       </div>
     </section>
 
-    <p class="plan-bloqueado rep-bloqueado" th:unless="${modulos.contains('REPORTES_COMPLETOS')}">🔒 Tu plan incluye el reporte de ventas del día. Semanas, meses, lo más vendido y las ventas por persona: <a th:href="@{/admin/plan(modulo='REPORTES_COMPLETOS')}">Disponible en el plan Pro</a></p>
-    <p class="plan-bloqueado rep-bloqueado" th:unless="${modulos.contains('REPORTES_AVANZADOS')}">🔒 Comparación con el período anterior, horarios y exportación a Excel: <a th:href="@{/admin/plan(modulo='REPORTES_AVANZADOS')}">Disponible en el plan Premium</a></p>
+    <p class="plan-bloqueado rep-bloqueado" th:unless="${modulos.contains('REPORTES_COMPLETOS')}"><svg th:replace="~{fragments/icono :: i('lock')}"></svg> Tu plan incluye el reporte de ventas del día. Semanas, meses, lo más vendido y las ventas por persona: <a th:href="@{/admin/plan(modulo='REPORTES_COMPLETOS')}">Disponible en el plan Pro</a></p>
+    <p class="plan-bloqueado rep-bloqueado" th:unless="${modulos.contains('REPORTES_AVANZADOS')}"><svg th:replace="~{fragments/icono :: i('lock')}"></svg> Comparación con el período anterior, horarios y exportación a Excel: <a th:href="@{/admin/plan(modulo='REPORTES_AVANZADOS')}">Disponible en el plan Premium</a></p>
     <div id="rep-error" hidden></div>
 
     <section aria-labelledby="rep-titulo-resumen">
@@ -155,9 +155,9 @@
         <p>Descarga los datos de estas fechas. Se abren en Excel.</p>
       </div>
       <div class="admin-card-body rep-exportar">
-        <a class="btn button-secondary" id="rep-csv-pedidos" href="#" download><span aria-hidden="true">🧾</span> Descargar pedidos (CSV)</a>
-        <a class="btn button-secondary" id="rep-csv-productos" href="#" download><span aria-hidden="true">🍽️</span> Descargar productos (CSV)</a>
-        <a class="btn button-secondary" id="rep-csv-empleados" href="#" download><span aria-hidden="true">👥</span> Descargar equipo (CSV)</a>
+        <a class="btn button-secondary" id="rep-csv-pedidos" href="#" download><svg th:replace="~{fragments/icono :: i('download')}"></svg> Descargar pedidos (CSV)</a>
+        <a class="btn button-secondary" id="rep-csv-productos" href="#" download><svg th:replace="~{fragments/icono :: i('download')}"></svg> Descargar productos (CSV)</a>
+        <a class="btn button-secondary" id="rep-csv-empleados" href="#" download><svg th:replace="~{fragments/icono :: i('download')}"></svg> Descargar equipo (CSV)</a>
       </div>
     </section>
   </main>

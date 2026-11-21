@@ -5,6 +5,7 @@ public enum AccionAuditoria {
     PEDIDO_ITEMS_AGREGADOS("Productos agregados al pedido"),
     PEDIDO_ESTADO("Cambio de estado del pedido"),
     PEDIDO_COBRADO("Pedido cobrado"),
+    PEDIDO_ANULADO("Pedido anulado"),
     PAGO_PARCIAL_REGISTRADO("Pago parcial registrado"),
     PEDIDO_QR_APROBADO("Pedido desde la carta aprobado"),
     PEDIDO_QR_RECHAZADO("Pedido desde la carta rechazado"),

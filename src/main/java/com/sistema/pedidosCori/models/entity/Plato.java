@@ -14,6 +14,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -60,6 +62,15 @@ public class Plato {
 
     @Column(name = "stock_disponible")
     private Integer stockDisponible;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_disponibilidad", nullable = false, length = 20)
+    private TipoDisponibilidad tipoDisponibilidad = TipoDisponibilidad.CONTINUA;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean pausado = false;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Column(name = "imagen_version")

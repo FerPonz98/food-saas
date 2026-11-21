@@ -6,7 +6,7 @@
             th:attr="aria-label=|Menú de sesión de ${sesionUsuario}|">
         <span class="sm-avatar" aria-hidden="true" th:text="${#strings.toUpperCase(#strings.substring(sesionUsuario, 0, 1))}">U</span>
         <span class="sm-nombre" th:text="${sesionUsuario}">usuario</span>
-        <span class="sm-flecha" aria-hidden="true">▾</span>
+        <span class="sm-flecha" aria-hidden="true"><svg th:replace="~{fragments/icono :: i('chevron-down')}"></svg></span>
     </button>
     <div class="sm-panel" hidden>
         <div class="sm-cabecera">

@@ -61,4 +61,7 @@ public class Usuario {
 
     @Column(name = "terminos_aceptados_en")
     private LocalDateTime terminosAceptadosEn;
+    @Builder.Default
+    @Column(name = "gestiona_disponibilidad", nullable = false)
+    private Boolean gestionaDisponibilidad = false;
 }

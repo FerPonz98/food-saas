@@ -193,6 +193,15 @@
           <small class="admin-error" data-error="rol" hidden></small>
         </fieldset>
 
+        <div class="admin-field usr-activo" data-permiso-disponibilidad th:if="${modulos.contains('DISPONIBILIDAD')}" hidden>
+          <label class="usr-switch">
+            <input type="checkbox" name="gestionaDisponibilidad" role="switch">
+            <span class="usr-switch-pista" aria-hidden="true"></span>
+            <span>Puede gestionar disponibilidad</span>
+          </label>
+          <small class="admin-help">Podrá subir, bajar, pausar y reactivar productos desde la pantalla de cocina. Los administradores siempre pueden.</small>
+        </div>
+
         <div class="admin-field" data-solo-nuevo>
           <label for="usr-password-nuevo">Contraseña temporal</label>
           <div class="usr-password">
