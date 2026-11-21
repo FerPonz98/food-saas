@@ -27,11 +27,14 @@ public class ConfiguracionNegocioService {
 
     public static final int MAXIMO_PUNTOS_ATENCION = 500;
     private final ModuloService modulos;
+    private final MarcaPlataformaService marca;
 
     @Transactional
     public void crearPara(long negocioId, String nombre) {
         if (dao.existsById(negocioId)) return;
         ConfiguracionNegocio c = nuevaPorDefecto();
+        com.sistema.pedidosCori.models.entity.MarcaPlataforma m = marca.actual();
+        c.setColorPrimario(m.getColorPrimario()); c.setColorSecundario(m.getColorSecundario()); c.setColorAcento(m.getColorAcento());
         c.setId(negocioId);
         if (nombre != null && !nombre.isBlank()) c.setNombreNegocio(nombre.trim());
         dao.save(c);
@@ -52,10 +55,13 @@ public class ConfiguracionNegocioService {
     }
 
     public ConfiguracionNegocioVista vistaPlataforma() {
+        com.sistema.pedidosCori.models.entity.MarcaPlataforma m = marca.actual();
         ConfiguracionNegocio c = nuevaPorDefecto();
-        c.setNombreNegocio("Plataforma");
-        c.setEslogan("Administración de negocios y planes");
-        return vista(c, null);
+        c.setNombreNegocio(m.getNombre());
+        c.setEslogan(m.getEslogan() == null ? "" : m.getEslogan());
+        c.setColorPrimario(m.getColorPrimario()); c.setColorSecundario(m.getColorSecundario()); c.setColorAcento(m.getColorAcento());
+        c.setLogoMimeType(m.getLogoDatos() == null ? null : m.getLogoMimeType());
+        return vista(c, null, "/img/plataforma/logo?v=" + m.getLogoVersion());
     }
 
     @Transactional(readOnly = true)
@@ -64,8 +70,13 @@ public class ConfiguracionNegocioService {
     }
 
     private ConfiguracionNegocioVista vista(ConfiguracionNegocio c, ModuloService.InfoNegocio info) {
+        return vista(c, info, null);
+    }
+
+    private ConfiguracionNegocioVista vista(ConfiguracionNegocio c, ModuloService.InfoNegocio info, String logoPropio) {
         Map<String, String> tema = TemaNegocio.variables(c.getColorPrimario(), c.getColorSecundario(), c.getColorAcento());
-        String logo = info == null ? "/branding/logo?v=" + c.getLogoVersion() : "/n/" + info.slug() + "/logo?v=" + c.getLogoVersion();
+        String logo = logoPropio != null ? logoPropio
+            : info == null ? "/branding/logo?v=" + c.getLogoVersion() : "/n/" + info.slug() + "/logo?v=" + c.getLogoVersion();
         return new ConfiguracionNegocioVista(c.getNombreNegocio(), c.getEslogan(), c.getColorPrimario(),
             c.getColorSecundario(), c.getColorAcento(), c.getPuntoAtencionSingular(), c.getPuntoAtencionPlural(),
             c.getEtiquetaParaLlevar(), c.getEtiquetaRolMesero(), c.getEtiquetaRolCocina(), c.getSimboloMoneda(),

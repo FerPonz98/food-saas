@@ -10,7 +10,7 @@
     </button>
     <a class="admin-brand admin-brand-movil" th:href="@{/superadmin}" aria-label="Ir al panel de la plataforma">
       <img th:src="${negocio.logoUrl}" alt="">
-      <span class="admin-brand-nombre">Plataforma</span>
+      <span class="admin-brand-nombre" th:text="${negocio.nombreNegocio}">Plataforma</span>
     </a>
     <span class="admin-header-titulo" id="admin-seccion-actual"></span>
     <div class="admin-header-sesion">
@@ -23,7 +23,7 @@
       <a class="admin-brand" th:href="@{/superadmin}" aria-label="Ir al panel de la plataforma">
         <img th:src="${negocio.logoUrl}" alt="">
         <span class="admin-brand-texto">
-          <span class="admin-brand-nombre">Plataforma</span>
+          <span class="admin-brand-nombre" th:text="${negocio.nombreNegocio}">Plataforma</span>
           <span class="admin-brand-sub">Superadministración</span>
         </span>
       </a>
@@ -50,6 +50,12 @@
           <a class="admin-nav-item" th:href="@{/superadmin/cobros}" th:attr="aria-current=${activa == 'cobros' ? 'page' : null}">
             <span class="admin-nav-icono"><svg th:replace="~{fragments/icono :: i('wallet')}"></svg></span>
             <span class="admin-nav-texto"><span class="admin-nav-label">Cobros</span><span class="admin-nav-hint">Facturas, pagos, avisos y módulos extra</span></span>
+          </a>
+        </li>
+        <li>
+          <a class="admin-nav-item" th:href="@{/superadmin/apariencia}" th:attr="aria-current=${activa == 'apariencia' ? 'page' : null}">
+            <span class="admin-nav-icono"><svg th:replace="~{fragments/icono :: i('palette')}"></svg></span>
+            <span class="admin-nav-texto"><span class="admin-nav-label">Apariencia</span><span class="admin-nav-hint">Marca de la plataforma y colores de cada negocio</span></span>
           </a>
         </li>
       </ul>

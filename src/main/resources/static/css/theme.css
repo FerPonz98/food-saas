@@ -239,7 +239,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--action-primary
 .notice-ui-ok { background: var(--status-success-soft); color: var(--status-success-text); border: 1px solid var(--status-success-border); }
 .notice-ui-cerrar { min-height: 32px; border: 1px solid currentColor; border-radius: var(--radius-sm); background: transparent; color: inherit; padding: var(--space-1) var(--space-3); font-size: .8rem; font-weight: 700; cursor: pointer; box-shadow: none; }
 
-:root { --carta-barra-alto: 0px; --sp-alto: 0px; --sp-inferior: 0px; --sp-pt: 0px; --sp-pl: 0px; --sp-pr: 0px; --sp-gap: 0px; --sp-fondo: var(--surface-card); --sp-zona: 56px; --sp-fade-sup: 28px; }
+:root { --muestra-primario: var(--brand-primary); --muestra-secundario: var(--brand-secondary); --muestra-acento: var(--brand-accent); --carta-barra-alto: 0px; --sp-alto: 0px; --sp-inferior: 0px; --sp-pt: 0px; --sp-pl: 0px; --sp-pr: 0px; --sp-gap: 0px; --sp-fondo: var(--surface-card); --sp-zona: 56px; --sp-fade-sup: 28px; }
 .sp-host { position: sticky; top: 0; left: 0; z-index: 3; display: flow-root; flex: none; align-self: stretch; justify-self: stretch; grid-column: 1 / -1; order: -1; height: 0; min-height: 0; max-height: 0; margin: 0 0 calc(var(--sp-gap) * -1); padding: 0; border: 0; overflow: visible; pointer-events: none; }
 .sp-fade-arriba { position: absolute; top: calc(var(--sp-pt) * -1); left: calc(var(--sp-pl) * -1); right: calc(var(--sp-pr) * -1); height: var(--sp-fade-sup); background: linear-gradient(to bottom, var(--sp-fondo), transparent); opacity: 0; pointer-events: none; transition: opacity var(--dur-base) var(--ease-out); }
 .sp-host.sp-arriba .sp-fade-arriba { opacity: .9; }

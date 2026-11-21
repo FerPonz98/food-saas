@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Apariencia — Plataforma</title>
+  <th:block th:replace="~{fragments/head :: branding}"></th:block>
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+  <link rel="stylesheet" th:href="@{/css/superadmin.css}">
+  <link rel="stylesheet" th:href="@{/css/marca.css}">
+  <script defer th:src="@{/js/security.js}"></script>
+  <script defer th:src="@{/js/admin-shell.js}"></script>
+  <script defer th:src="@{/js/superadmin-apariencia.js}"></script>
+</head>
+<body class="admin-shell">
+  <div th:replace="~{fragments/superadmin-layout :: barra('apariencia')}"></div>
+  <main class="admin-main" id="contenido" tabindex="-1">
+    <header class="admin-page-head">
+      <div>
+        <h1>Apariencia</h1>
+        <p class="admin-page-desc">La marca de la plataforma (tu panel de superadministración) es independiente de la de cada negocio. Aquí también puedes ajustar los colores de cualquier negocio.</p>
+      </div>
+    </header>
+
+    <section class="admin-card" aria-labelledby="mp-titulo">
+      <div class="admin-card-head">
+        <h2 id="mp-titulo">Marca de la plataforma</h2>
+        <p>Se usa en todo el entorno del superadministrador y como colores iniciales de los negocios nuevos.</p>
+      </div>
+      <div class="admin-card-body mp-layout">
+        <form class="admin-form-grid" id="mp-form" novalidate>
+          <div class="admin-field">
+            <label for="mp-nombre">Nombre</label>
+            <input class="field" id="mp-nombre" name="nombre" maxlength="120" required>
+          </div>
+          <div class="admin-field">
+            <label for="mp-eslogan">Eslogan</label>
+            <input class="field" id="mp-eslogan" name="eslogan" maxlength="240">
+          </div>
+          <div class="admin-campo-ancho mp-colores" data-colores="mp"></div>
+          <div class="admin-campo-ancho mp-acciones">
+            <button type="submit" class="button-primary">Guardar marca</button>
+          </div>
+        </form>
+        <div class="mp-lado">
+          <div class="mp-logo-caja">
+            <img id="mp-logo" alt="Logo de la plataforma">
+            <div class="mp-logo-botones">
+              <label class="button-secondary mp-subir">
+                <svg th:replace="~{fragments/icono :: i('image')}"></svg> Cambiar logo
+                <input type="file" id="mp-archivo" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="visually-hidden">
+              </label>
+              <button type="button" class="button-ghost" id="mp-quitar">Quitar</button>
+            </div>
+            <p class="admin-help">PNG, JPG, WebP o SVG, hasta 1 MB.</p>
+          </div>
+          <div class="mp-muestra" id="mp-muestra" aria-hidden="true">
+            <div class="mp-muestra-barra"><span class="mp-muestra-logo"></span><span data-muestra-nombre>Plataforma</span></div>
+            <div class="mp-muestra-cuerpo">
+              <span class="mp-muestra-chip">Secundario</span>
+              <span class="mp-muestra-boton">Acento</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-card" aria-labelledby="mn-titulo">
+      <div class="admin-card-head">
+        <h2 id="mn-titulo">Colores de cada negocio</h2>
+        <p>Cambia los colores de un negocio sin entrar a su cuenta. Su logo y su nombre los maneja el dueño desde su panel.</p>
+      </div>
+      <div class="admin-card-body">
+        <div class="mn-lista" id="mn-lista"></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
