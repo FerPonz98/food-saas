@@ -54,7 +54,7 @@ public class CobranzaService {
     private final AuditoriaService auditoria;
 
     public record Parametros(Integer diasGeneracion, Integer diasRecordatorio, Integer diasGracia,
-            Boolean suspensionAutomatica, String instruccionesPago) {
+            Boolean suspensionAutomatica, String instruccionesPago, Boolean cobranzaActiva) {
     }
 
     public record PrecioModulo(String modulo, String etiqueta, String grupo, BigDecimal precioMensual, BigDecimal precioAnual,
@@ -139,9 +139,10 @@ public class CobranzaService {
             p.setDiasRecordatorio(dias(r.diasRecordatorio(), "Los días de recordatorio"));
             p.setDiasGracia(dias(r.diasGracia(), "Los días de gracia"));
             p.setSuspensionAutomatica(!Boolean.FALSE.equals(r.suspensionAutomatica()));
+            if (r.cobranzaActiva() != null) p.setCobranzaActiva(r.cobranzaActiva());
             p.setInstruccionesPago(texto(r.instruccionesPago(), 1000, "Las instrucciones de pago"));
             parametros.save(p);
-            auditoria.registrarPlataforma("COBRO_PARAMETROS", null, "Emisión " + p.getDiasGeneracion() + " días antes · Gracia "
+            auditoria.registrarPlataforma("COBRO_PARAMETROS", null, "Cobranza automática " + (p.getCobranzaActiva() ? "activa" : "apagada") + " · Emisión " + p.getDiasGeneracion() + " días antes · Gracia "
                 + p.getDiasGracia() + " días · Suspensión automática " + (p.getSuspensionAutomatica() ? "sí" : "no"));
             return vista(p);
         });
@@ -415,6 +416,7 @@ public class CobranzaService {
         if (n == null || n.getVenceEn() == null || n.getEstado() == EstadoSuscripcion.CANCELADO) return new int[]{0, 0, 0};
         if (n.getEstado() == EstadoSuscripcion.SUSPENDIDO && !SUSPENSION_POR_PAGO.equals(n.getMotivoSuspension())) return new int[]{0, 0, 0};
         ParametrosCobro p = parametrosActuales();
+        if (!Boolean.TRUE.equals(p.getCobranzaActiva())) return new int[]{0, 0, 0};
         if (n.getEstado() != EstadoSuscripcion.SUSPENDIDO
                 && ChronoUnit.DAYS.between(hoy, n.getVenceEn()) <= p.getDiasGeneracion()
                 && !existeFactura(id, n.getVenceEn())) {
@@ -514,7 +516,7 @@ public class CobranzaService {
 
     private static Parametros vista(ParametrosCobro p) {
         return new Parametros(p.getDiasGeneracion(), p.getDiasRecordatorio(), p.getDiasGracia(),
-            p.getSuspensionAutomatica(), p.getInstruccionesPago());
+            p.getSuspensionAutomatica(), p.getInstruccionesPago(), p.getCobranzaActiva());
     }
 
     private static int dias(Integer valor, String campo) {

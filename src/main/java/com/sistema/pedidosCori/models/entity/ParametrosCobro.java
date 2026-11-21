@@ -26,6 +26,9 @@ public class ParametrosCobro {
     @Column(name = "dias_gracia", nullable = false)
     private Integer diasGracia = 5;
 
+    @Column(name = "cobranza_activa", nullable = false)
+    private Boolean cobranzaActiva = true;
+
     @Column(name = "suspension_automatica", nullable = false)
     private Boolean suspensionAutomatica = true;
 

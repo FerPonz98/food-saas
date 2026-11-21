@@ -218,6 +218,7 @@
         form.elements.diasRecordatorio.value = p.diasRecordatorio;
         form.elements.diasGracia.value = p.diasGracia;
         form.elements.suspensionAutomatica.checked = !!p.suspensionAutomatica;
+        form.elements.cobranzaActiva.checked = !!p.cobranzaActiva;
         form.elements.instruccionesPago.value = p.instruccionesPago || '';
     }
 
@@ -230,7 +231,8 @@
                 method: 'PUT',
                 body: {
                     diasGeneracion: num('diasGeneracion'), diasRecordatorio: num('diasRecordatorio'), diasGracia: num('diasGracia'),
-                    suspensionAutomatica: form.elements.suspensionAutomatica.checked, instruccionesPago: form.elements.instruccionesPago.value
+                    suspensionAutomatica: form.elements.suspensionAutomatica.checked, instruccionesPago: form.elements.instruccionesPago.value,
+                    cobranzaActiva: form.elements.cobranzaActiva.checked
                 }
             });
             showNotice('Reglas de cobro guardadas', 'ok');

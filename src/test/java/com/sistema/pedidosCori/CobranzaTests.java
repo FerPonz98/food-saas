@@ -165,7 +165,7 @@ class CobranzaTests {
     void automaticSuspensionCanBeTurnedOff() {
         CobranzaService.Parametros antes = cobranza.parametros();
         try {
-            cobranza.actualizarParametros(new CobranzaService.Parametros(7, 7, 2, false, "Pagar por QR"));
+            cobranza.actualizarParametros(new CobranzaService.Parametros(7, 7, 2, false, "Pagar por QR", true));
             LocalDate vence = LocalDate.now().plusDays(1);
             Nuevo n = negocio("PRO", vence);
             cobranza.ejecutarPara(n.id(), LocalDate.now());
